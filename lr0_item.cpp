@@ -38,7 +38,7 @@ bool Lr0Item::isComplete() const {
     return dot >= consequent.size() ||
            (consequent.size() == 1 &&
             consequent[0] == "EPSILON") ||
-           (dot < consequent.size() && nextToDot() == "$");
+           (dot < consequent.size() && consequent[dot] == "$");
 }
 
 void Lr0Item::printItem() const {

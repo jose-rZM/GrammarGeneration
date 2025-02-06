@@ -169,7 +169,6 @@ bool SLR1Parser::SolveLRConflicts(const state& st) {
                                      [&sym](const auto& column) -> bool {
                                          return sym == column.first;
                                      }) != actions_[st.id].end()) {
-                        DebugStates();
                         return false;
                     }
                     actions_[st.id][sym] = {&item, Action::Reduce};
@@ -182,8 +181,6 @@ bool SLR1Parser::SolveLRConflicts(const state& st) {
                                  [&nextToDot](const auto& column) -> bool {
                                      return nextToDot == column.first;
                                  }) != actions_[st.id].end()) {
-                    DebugStates();
-                    DebugTable();
                     return false;
                 }
                 actions_[st.id][item.nextToDot()] = {nullptr, Action::Shift};
