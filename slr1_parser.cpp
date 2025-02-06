@@ -158,32 +158,36 @@ void SLR1Parser::MakeInitialState() {
 bool SLR1Parser::SolveLRConflicts(const state& st) {
     for (const Lr0Item& item : st.items) {
         if (item.isComplete()) {
+            // Regla 3: Si el ítem es del axioma, ACCEPT en EOL
             if (item.antecedent == gr_.axiom_) {
                 actions_[st.id][gr_.st_.EOL_] = {nullptr, Action::Accept};
             } else {
-                std::unordered_set<std::string> follows =
-                    Follow(item.antecedent);
+                // Regla 2: Si el ítem es completo, REDUCE en FOLLOW(A)
+                std::unordered_set<std::string> follows = Follow(item.antecedent);
                 for (const std::string& sym : follows) {
-                    if (std::find_if(actions_[st.id].begin(),
-                                     actions_[st.id].end(),
-                                     [&sym](const auto& column) -> bool {
-                                         return sym == column.first;
-                                     }) != actions_[st.id].end()) {
-                        return false;
+                    auto it = actions_[st.id].find(sym);
+                    if (it != actions_[st.id].end()) {
+                        // Si ya hay una acción y no es REDUCE, hay conflicto
+                        if (it->second.action != Action::Reduce) {
+                            return false;
+                        }
                     }
                     actions_[st.id][sym] = {&item, Action::Reduce};
                 }
             }
         } else {
+            // Regla 1: Si hay un terminal después del punto, hacemos SHIFT
             std::string nextToDot = item.nextToDot();
-            if (gr_.st_.IsTerminal(item.nextToDot())) {
-                if (std::find_if(actions_[st.id].begin(), actions_[st.id].end(),
-                                 [&nextToDot](const auto& column) -> bool {
-                                     return nextToDot == column.first;
-                                 }) != actions_[st.id].end()) {
-                    return false;
+            if (gr_.st_.IsTerminal(nextToDot)) {
+                auto it = actions_[st.id].find(nextToDot);
+                if (it != actions_[st.id].end()) {
+                    // Si hay una acción previa, hay conflicto si es REDUCE
+                    if (it->second.action == Action::Reduce) {
+                        return false;
+                    }
+                    // Si ya hay un SHIFT en esa celda, no hay conflicto (varios SHIFT están permitidos)
                 }
-                actions_[st.id][item.nextToDot()] = {nullptr, Action::Shift};
+                actions_[st.id][nextToDot] = {nullptr, Action::Shift};
             }
         }
     }
