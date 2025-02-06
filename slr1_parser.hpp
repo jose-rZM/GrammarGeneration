@@ -120,7 +120,7 @@ public:
                     std::unordered_set<std::string> &visited,
                     std::unordered_set<std::string> &next_symbols);
 
-    void MakeInitialStat();
+    void MakeInitialState();
     bool MakeParser();
 
     Grammar gr_;

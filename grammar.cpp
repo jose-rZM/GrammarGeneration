@@ -23,6 +23,10 @@ Grammar::Grammar(const std::unordered_map<std::string, std::vector<production>> 
     }
     axiom_ = "S";
     g_ = std::move(grammar);
+    if (g_.find("S") == g_.end()) {
+        // S -> firstNonTerminal $
+        g_["S"] = {{*st_.non_terminals_.begin(), st_.EOL_}};
+    }
 }
 
 

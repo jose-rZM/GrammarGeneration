@@ -145,7 +145,7 @@ void SLR1Parser::DebugTable() const {
     }
 }
 
-void SLR1Parser::MakeInitialStat() {
+void SLR1Parser::MakeInitialState() {
     state initial;
     initial.id = 0;
     auto axiom = gr_.g_.at(gr_.axiom_);
@@ -195,7 +195,7 @@ bool SLR1Parser::SolveLRConflicts(const state& st) {
 
 bool SLR1Parser::MakeParser() {
     ComputeFirstSets();
-    MakeInitialStat();
+    MakeInitialState();
     std::queue<unsigned int> pending;
     pending.push(0);
     unsigned int current = 0;
@@ -277,6 +277,9 @@ void SLR1Parser::ClosureUtil(std::unordered_set<Lr0Item>& items,
 
     for (const auto& item : items) {
         std::string next = item.nextToDot();
+        if (next == gr_.st_.EPSILON_) {
+            continue;
+        }
         if (!gr_.st_.IsTerminal(next) &&
             std::find(visited.cbegin(), visited.cend(), next) ==
                 visited.cend()) {

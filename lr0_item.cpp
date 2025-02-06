@@ -26,7 +26,7 @@ Lr0Item::Lr0Item(std::string antecedent, std::vector<std::string> consequent,
 }
 
 std::string Lr0Item::nextToDot() const {
-    if (dot == consequent.size()) {
+    if (dot == consequent.size() || (dot < consequent.size() && consequent[dot] == "$")) {
         return "EPSILON";
     }
     return consequent[dot];
@@ -38,7 +38,7 @@ bool Lr0Item::isComplete() const {
     return dot >= consequent.size() ||
            (consequent.size() == 1 &&
             consequent[0] == "EPSILON") ||
-           nextToDot() == "$";
+           (dot < consequent.size() && nextToDot() == "$");
 }
 
 void Lr0Item::printItem() const {
