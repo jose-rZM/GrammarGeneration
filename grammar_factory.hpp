@@ -17,6 +17,9 @@ struct GrammarFactory {
 
     void Init();
     Grammar PickOne(int level);
+    Grammar Lv1();
+    Grammar Lv2();
+    Grammar Lv3();
     
     std::vector<FactoryItem> items;
     

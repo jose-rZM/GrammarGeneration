@@ -34,14 +34,41 @@ void GrammarFactory::Init()
 
 Grammar GrammarFactory::PickOne(int level)
 {
-    switch (level) {
-        case 1:
-            break;
-        case 2:
-            break;
-        case 3:
-            break;
+    switch (level)
+    {
+    case 1:
+        return Lv1();
+        break;
+    case 2:
+        return Lv2();
+        break;
+    case 3:
+        return Lv3();
+        break;
+    default:
+        return Grammar();
+        break;
     }
+}
+
+Grammar GrammarFactory::Lv1()
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<size_t> dist(0, items.size() - 1);
+    return Grammar(items.at(dist(gen)).g_);
+}
+
+Grammar GrammarFactory::Lv2()
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<size_t> dist(0, items.size() - 1);
+    return Grammar(items.at(dist(gen)).g_);
+}
+
+Grammar GrammarFactory::Lv3()
+{
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<size_t> dist(0, items.size() - 1);
@@ -50,13 +77,19 @@ Grammar GrammarFactory::PickOne(int level)
 
 GrammarFactory::FactoryItem::FactoryItem(const std::unordered_map<std::string, std::vector<production>> &grammar)
 {
-    for (const auto &[nt, prods] : grammar) {
+    for (const auto &[nt, prods] : grammar)
+    {
         st_.PutSymbol(nt, false);
-        for (const auto& prod : prods) {
-            for (const std::string &symbol : prod) {
-                if (symbol == "EPSILON") {
+        for (const auto &prod : prods)
+        {
+            for (const std::string &symbol : prod)
+            {
+                if (symbol == "EPSILON")
+                {
                     continue;
-                } else if (std::islower(symbol[0])) {
+                }
+                else if (std::islower(symbol[0]))
+                {
                     st_.PutSymbol(symbol, true);
                 }
             }
@@ -65,9 +98,9 @@ GrammarFactory::FactoryItem::FactoryItem(const std::unordered_map<std::string, s
     g_ = (grammar);
 }
 
-bool GrammarFactory::FactoryItem::HasEmptyProduction(const std::string& antecedent) {
+bool GrammarFactory::FactoryItem::HasEmptyProduction(const std::string &antecedent)
+{
     auto &rules = g_.at(antecedent);
-            return std::find_if(rules.cbegin(), rules.cend(), [&](const auto& rule) {
-                       return rule[0] == "EPSILON";
-                   }) != rules.cend();
+    return std::find_if(rules.cbegin(), rules.cend(), [&](const auto &rule)
+                        { return rule[0] == "EPSILON"; }) != rules.cend();
 }

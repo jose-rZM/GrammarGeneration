@@ -6,13 +6,12 @@
 
 using production = std::vector<std::string>;
 
-struct Grammar {
+struct Grammar
+{
 
-   
+    Grammar() = default;
     explicit Grammar(
-        const std::unordered_map<std::string, std::vector<production>> &grammar)
-    ;
-
+        const std::unordered_map<std::string, std::vector<production>> &grammar);
 
     /**
      * @brief Adds a rule to the grammar.
@@ -24,7 +23,7 @@ struct Grammar {
      * consequent production. This function processes and adds each rule for
      * parsing.
      */
-    void AddRule(const std::string& antecedent, const std::string& consequent);
+    void AddRule(const std::string &antecedent, const std::string &consequent);
 
     /**
      * @brief Sets the axiom (entry point) of the grammar.
@@ -34,7 +33,7 @@ struct Grammar {
      * Defines the starting point for the grammar, which is used in parsing
      * algorithms and must be a non-terminal symbol present in the grammar.
      */
-    void SetAxiom(const std::string& axiom);
+    void SetAxiom(const std::string &axiom);
 
     /**
      * @brief Checks if a given antecedent has an empty production.
@@ -46,7 +45,7 @@ struct Grammar {
      * An empty production is represented as `<antecedent> -> ;`, indicating
      * that the antecedent can produce an empty string.
      */
-    bool HasEmptyProduction(const std::string& antecedent);
+    bool HasEmptyProduction(const std::string &antecedent);
 
     /**
      * @brief Filters grammar rules that contain a specific token in their
@@ -60,7 +59,7 @@ struct Grammar {
      * and returns those rules.
      */
     std::vector<std::pair<const std::string, production>>
-    FilterRulesByConsequent(const std::string& arg);
+    FilterRulesByConsequent(const std::string &arg);
 
     /**
      * @brief Prints the current grammar structure to standard output.
@@ -81,7 +80,7 @@ struct Grammar {
      * on the symbol table, allowing terminals and non-terminals to be
      * identified.
      */
- std::vector<std::string> Split(const std::string& s);
+    std::vector<std::string> Split(const std::string &s);
 
     /**
      * @brief Checks if a rule exhibits left recursion.
@@ -95,8 +94,8 @@ struct Grammar {
      * first symbol in its consequent, which may cause issues in top-down
      * parsing algorithms.
      */
-     bool HasLeftRecursion(const std::string&              antecedent,
-                                 const std::vector<std::string>& consequent);
+    bool HasLeftRecursion(const std::string &antecedent,
+                          const std::vector<std::string> &consequent);
 
     /**
      * @brief Stores the grammar rules with each antecedent mapped to a list of
@@ -108,6 +107,6 @@ struct Grammar {
      * @brief The axiom or entry point of the grammar.
      */
     std::string axiom_;
-    
+
     symbol_table st_;
 };
