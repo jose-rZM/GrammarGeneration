@@ -7,7 +7,7 @@
 int main() {
     GrammarFactory factory;
     factory.Init();
-    Grammar gr = factory.PickOne();
+    Grammar gr = factory.PickOne(1);
     LL1Parser ll1(gr);
     SLR1Parser slr1(gr);
     gr.Debug();
