@@ -13,5 +13,4 @@ int main() {
     gr.Debug();
     std::cout << "Is ll1? : " << ll1.CreateLL1Table() << "\n";
     std::cout << "Is slr1? : " << slr1.MakeParser() << "\n";
-
 }

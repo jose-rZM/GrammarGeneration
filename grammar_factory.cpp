@@ -1,5 +1,6 @@
 #include "grammar_factory.hpp"
 #include <random>
+#include <algorithm>
 
 void GrammarFactory::Init()
 {
@@ -31,10 +32,42 @@ void GrammarFactory::Init()
         {"A", {{"b", "A"}, {"a"}}}});
 }
 
-Grammar GrammarFactory::PickOne()
+Grammar GrammarFactory::PickOne(int level)
 {
+    switch (level) {
+        case 1:
+            break;
+        case 2:
+            break;
+        case 3:
+            break;
+    }
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<size_t> dist(0, items.size() - 1);
-    return items.at(dist(gen));
+    return Grammar(items.at(dist(gen)).g_);
+}
+
+GrammarFactory::FactoryItem::FactoryItem(const std::unordered_map<std::string, std::vector<production>> &grammar)
+{
+    for (const auto &[nt, prods] : grammar) {
+        st_.PutSymbol(nt, false);
+        for (const auto& prod : prods) {
+            for (const std::string &symbol : prod) {
+                if (symbol == "EPSILON") {
+                    continue;
+                } else if (std::islower(symbol[0])) {
+                    st_.PutSymbol(symbol, true);
+                }
+            }
+        }
+    }
+    g_ = (grammar);
+}
+
+bool GrammarFactory::FactoryItem::HasEmptyProduction(const std::string& antecedent) {
+    auto &rules = g_.at(antecedent);
+            return std::find_if(rules.cbegin(), rules.cend(), [&](const auto& rule) {
+                       return rule[0] == "EPSILON";
+                   }) != rules.cend();
 }
