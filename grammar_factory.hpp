@@ -13,6 +13,7 @@ struct GrammarFactory {
         symbol_table st_;
         FactoryItem(const std::unordered_map<std::string, std::vector<production>>& grammar);
         bool HasEmptyProduction(const std::string& antecedent);
+        void Debug();
     };
 
     void Init();
@@ -22,5 +23,7 @@ struct GrammarFactory {
     Grammar Lv3();
     
     std::vector<FactoryItem> items;
+    std::vector<std::string> terminal_alphabet_ {"a", "b", "c", "d", "e"};
+    std::vector<std::string> non_terminal_alphabet_ {"A", "B", "C", "D", "E"};
     
 };
