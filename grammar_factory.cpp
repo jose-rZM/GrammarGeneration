@@ -190,7 +190,7 @@ bool GrammarFactory::HasUnreachableSymbols(Grammar &grammar)
     pending.push(grammar.axiom_);
     reachable.insert(grammar.axiom_);
 
-    while (pending.empty()) {
+    while (!pending.empty()) {
         std::string current = pending.front();
         pending.pop();
 
