@@ -214,7 +214,9 @@ bool GrammarFactory::IsInfinite(Grammar &grammar)
             }
         }
     }
-    return generating.find(grammar.axiom_) == generating.end();
+    // Counterexample:  S -> A; A -> B A c | e; B -> B a | B. Axiom can derive into a terminal string (A -> e)
+    // return generating.find(grammar.axiom_) == generating.end();
+    return generating != grammar.st_.non_terminals_;
 }
 
 bool GrammarFactory::HasDirectLeftRecursion(Grammar &grammar)
