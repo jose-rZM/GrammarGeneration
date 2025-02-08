@@ -23,6 +23,7 @@ struct GrammarFactory {
     Grammar Lv3();
 
     // SANITY CHECKS --------
+    bool HasUnreachableSymbols(Grammar& grammar);
     bool IsInfinite(Grammar& grammar);
     bool HasDirectLeftRecursion(Grammar& grammar);
     

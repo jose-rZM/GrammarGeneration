@@ -182,7 +182,40 @@ Grammar GrammarFactory::Lv3()
     return Grammar(items.at(dist(gen)).g_);
 }
 
-bool GrammarFactory::IsInfinite(Grammar& grammar)
+bool GrammarFactory::HasUnreachableSymbols(Grammar &grammar)
+{
+    std::unordered_set<std::string> reachable;
+    std::queue<std::string> pending;
+
+    pending.push(grammar.axiom_);
+    reachable.insert(grammar.axiom_);
+
+    while (pending.empty()) {
+        std::string current = pending.front();
+        pending.pop();
+
+        auto it = grammar.g_.find(current);
+        if (it != grammar.g_.end()) {
+            for (const auto& production : it->second) {
+                for (const auto& symbol : production) {
+                    if (!grammar.st_.IsTerminal(symbol) && reachable.find(symbol) == reachable.end()) {
+                        reachable.insert(symbol);
+                        pending.push(symbol);
+                    }
+                }
+            }
+        }
+    }
+
+    for (const auto& nt : grammar.st_.non_terminals_) {
+        if (reachable.find(nt) == reachable.end()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool GrammarFactory::IsInfinite(Grammar &grammar)
 {
     std::unordered_set<std::string> generating_symbols;
     
