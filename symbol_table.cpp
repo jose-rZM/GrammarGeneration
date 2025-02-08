@@ -6,8 +6,9 @@
 
 void symbol_table::PutSymbol(const std::string& identifier, bool isTerminal) {
     if (isTerminal) {
-        st_[identifier]          = {TERMINAL};
+        st_.insert({identifier, TERMINAL});
         terminals_.insert(identifier);
+        terminals_wtho_eol_.insert(identifier);
 
     } else {
         st_.insert({identifier, NO_TERMINAL});

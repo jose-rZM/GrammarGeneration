@@ -108,7 +108,7 @@ Grammar GrammarFactory::Lv2()
     // -----------------------------------------------------
 
     // STEP 4 Change one base terminal to another that is not in cmb
-    std::unordered_set<std::string> cmb_terminals = cmb.st_.terminals_;
+    std::unordered_set<std::string> cmb_terminals = cmb.st_.terminals_wtho_eol_;
     std::unordered_set<std::string> terminal_alphabet_set(terminal_alphabet_.begin(), terminal_alphabet_.end());
 
     for (const std::string& terminal : cmb_terminals) {
@@ -119,8 +119,8 @@ Grammar GrammarFactory::Lv2()
     std::vector<std::string> remaining_terminals(terminal_alphabet_set.begin(), terminal_alphabet_set.end());
     std::string new_terminal = remaining_terminals[terminal_dist(gen)];
 
-    std::uniform_int_distribution<size_t> base_terminal_dist(0, base.st_.terminals_.size() - 1);
-    std::vector<std::string> base_terminals(base.st_.terminals_.begin(), base.st_.terminals_.end());
+    std::uniform_int_distribution<size_t> base_terminal_dist(0, base.st_.terminals_wtho_eol_.size() - 1);
+    std::vector<std::string> base_terminals(base.st_.terminals_wtho_eol_.begin(), base.st_.terminals_wtho_eol_.end());
     std::string terminal_to_replace = base_terminals.at(base_terminal_dist(gen));
 
     for (auto& [nt, prods] : base.g_) {
@@ -137,7 +137,7 @@ Grammar GrammarFactory::Lv2()
     // -----------------------------------------------------
     
     // STEP 5 Change one random terminal -> terminal B
-    terminal_to_replace = *std::next(base.st_.terminals_.begin(), base_terminal_dist(gen));
+    terminal_to_replace = *std::next(base.st_.terminals_wtho_eol_.begin(), base_terminal_dist(gen));
     for (auto& [nt, prods] : base.g_) {
         for (auto& prod : prods) {
             for (std::string& symbol : prod) {
@@ -212,6 +212,18 @@ bool GrammarFactory::IsInfinite(Grammar& grammar)
     return generating_symbols.find(grammar.axiom_) == generating_symbols.end();
 }
 
+bool GrammarFactory::HasDirectLeftRecursion(Grammar &grammar)
+{
+    for (const auto& [nt, prods] : grammar.g_) {
+        for (const auto& prod : prods) {
+            if (nt == prod[0]) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 GrammarFactory::FactoryItem::FactoryItem(const std::unordered_map<std::string, std::vector<production>> &grammar)
 {
     for (const auto &[nt, prods] : grammar)
@@ -223,6 +235,7 @@ GrammarFactory::FactoryItem::FactoryItem(const std::unordered_map<std::string, s
             {
                 if (symbol == "EPSILON")
                 {
+                    st_.PutSymbol(symbol, true);
                     continue;
                 }
                 else if (std::islower(symbol[0]))

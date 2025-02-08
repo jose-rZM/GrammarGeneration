@@ -24,6 +24,7 @@ struct GrammarFactory {
 
     // SANITY CHECKS --------
     bool IsInfinite(Grammar& grammar);
+    bool HasDirectLeftRecursion(Grammar& grammar);
     
     std::vector<FactoryItem> items;
     std::vector<std::string> terminal_alphabet_ {"a", "b", "c", "d", "e"};
