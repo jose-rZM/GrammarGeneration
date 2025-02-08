@@ -20,7 +20,7 @@ struct symbol_table {
     std::unordered_map<std::string, symbol_type>
         st_{{EOL_, TERMINAL}, {EPSILON_, TERMINAL}};
 
-    std::unordered_set<std::string> terminals_ = {"$"};
+    std::unordered_set<std::string> terminals_ = {EOL_, EPSILON_};
     std::unordered_set<std::string> non_terminals_;
 
     /**

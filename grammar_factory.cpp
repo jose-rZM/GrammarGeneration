@@ -2,6 +2,7 @@
 #include <random>
 #include <algorithm>
 #include <iostream>
+#include <queue>
 
 void GrammarFactory::Init()
 {
@@ -162,6 +163,53 @@ Grammar GrammarFactory::Lv3()
     std::mt19937 gen(rd());
     std::uniform_int_distribution<size_t> dist(0, items.size() - 1);
     return Grammar(items.at(dist(gen)).g_);
+}
+
+bool GrammarFactory::IsInfinite(Grammar& grammar)
+{
+    std::unordered_set<std::string> generating_symbols;
+    
+    bool changed = true;
+    while (changed) {
+        changed = false;
+        for (const auto& [nt, prods] : grammar.g_) {
+            if (generating_symbols.count(nt)) continue;
+
+            for (const auto& prod : prods) {
+                bool all_terminal_or_generating = true;
+                for (const auto& sym : prod) {
+                    if (!grammar.st_.IsTerminal(sym) && generating_symbols.find(sym) == generating_symbols.end()) {
+                        all_terminal_or_generating = false;
+                        break;
+                    }
+                }
+
+                if (all_terminal_or_generating) {
+                    generating_symbols.insert(nt);
+                    changed = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    std::unordered_set<std::string> reachable_symbols;
+    std::queue<std::string> q;
+    q.push(grammar.axiom_);
+
+    while (!q.empty()) {
+        std::string current = q.front();
+        q.pop();
+        for (const auto& prod : grammar.g_.at(current)) {
+            for (const auto& sym : prod) {
+                if (!grammar.st_.IsTerminal(sym) && reachable_symbols.find(sym) == reachable_symbols.end()) {
+                    reachable_symbols.insert(sym);
+                    q.push(sym);
+                }
+            }
+        }
+    }
+    return generating_symbols.find(grammar.axiom_) == generating_symbols.end();
 }
 
 GrammarFactory::FactoryItem::FactoryItem(const std::unordered_map<std::string, std::vector<production>> &grammar)

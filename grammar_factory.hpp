@@ -21,6 +21,9 @@ struct GrammarFactory {
     Grammar Lv1();
     Grammar Lv2();
     Grammar Lv3();
+
+    // SANITY CHECKS --------
+    bool IsInfinite(Grammar& grammar);
     
     std::vector<FactoryItem> items;
     std::vector<std::string> terminal_alphabet_ {"a", "b", "c", "d", "e"};
