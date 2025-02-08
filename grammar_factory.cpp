@@ -77,18 +77,6 @@ Grammar GrammarFactory::Lv2()
     }
     // -----------------------------------------------------
 
-// DEBUG -------------------------------------------------------------
-    std::cout << "----------------------\n";
-    std::cout << "BASE GRAMMAR\n";
-    base.Debug();
-    std::cout << "----------------------\n";
-    std::cout << "CMB GRAMMAR\n";
-    cmb.Debug();
-    std::cout << "----------------------\n";
-
-
-// END DEBUG -------------------------------------------------------------
-
     // STEP 3 Change non terminals in cmb to B --------------------------------------------
     std::unordered_map<std::string, std::vector<production>> cmb_updated_grammar;
     cmb.st_.non_terminals_.insert("B");
@@ -106,14 +94,6 @@ Grammar GrammarFactory::Lv2()
     }
     cmb.g_ = std::move(cmb_updated_grammar);
     // -----------------------------------------------------
-
-    // DEBUG ---------------------------
-    std::cout << "DONE: STEP 3\n";
-    std::cout << "----------------------\n";
-    std::cout << "CMB GRAMMAR\n";
-    cmb.Debug();
-    std::cout << "----------------------\n";
-    // END DEBUG -----------------------
 
     // STEP 4 Change one base terminal to another that is not in cmb
     std::unordered_set<std::string> cmb_terminals = cmb.st_.terminals_wtho_eol_;
@@ -144,14 +124,6 @@ Grammar GrammarFactory::Lv2()
     base.st_.terminals_wtho_eol_.insert(new_terminal);
     base_terminal_dist = std::uniform_int_distribution<size_t>(0, base.st_.terminals_wtho_eol_.size() - 1);
     // -----------------------------------------------------
-    
-    // DEBUG ---------------------------
-    std::cout << "DONE: STEP 4\n";
-    std::cout << "----------------------\n";
-    std::cout << "BASE GRAMMAR\n";
-    base.Debug();
-    std::cout << "----------------------\n";
-    // END DEBUG -----------------------
 
     // STEP 5 Change one random terminal -> terminal B
     terminal_to_replace = *std::next(base.st_.terminals_wtho_eol_.begin(), base_terminal_dist(gen));
@@ -217,49 +189,32 @@ bool GrammarFactory::HasUnreachableSymbols(Grammar &grammar)
 
 bool GrammarFactory::IsInfinite(Grammar &grammar)
 {
-    std::unordered_set<std::string> generating_symbols;
-    
+    std::unordered_set<std::string> generating;
     bool changed = true;
-    while (changed) {
-        changed = false;
-        for (const auto& [nt, prods] : grammar.g_) {
-            if (generating_symbols.count(nt)) continue;
 
-            for (const auto& prod : prods) {
-                bool all_terminal_or_generating = true;
-                for (const auto& sym : prod) {
-                    if (!grammar.st_.IsTerminal(sym) && generating_symbols.find(sym) == generating_symbols.end()) {
-                        all_terminal_or_generating = false;
+    while(changed) {
+        changed = false;
+        for (const auto& [nt, productions] : grammar.g_) {
+            if (generating.find(nt) != generating.end()) {
+                continue;
+            }
+            for (const auto& prod : productions) {
+                bool all_generating = true;
+                for (const auto& symbol : prod) {
+                    if (!grammar.st_.IsTerminal(symbol) && generating.find(symbol) == generating.end()) {
+                        all_generating = false;
                         break;
                     }
                 }
-
-                if (all_terminal_or_generating) {
-                    generating_symbols.insert(nt);
+                if (all_generating) {
+                    generating.insert(nt);
                     changed = true;
                     break;
                 }
             }
         }
     }
-
-    std::unordered_set<std::string> reachable_symbols;
-    std::queue<std::string> q;
-    q.push(grammar.axiom_);
-
-    while (!q.empty()) {
-        std::string current = q.front();
-        q.pop();
-        for (const auto& prod : grammar.g_.at(current)) {
-            for (const auto& sym : prod) {
-                if (!grammar.st_.IsTerminal(sym) && reachable_symbols.find(sym) == reachable_symbols.end()) {
-                    reachable_symbols.insert(sym);
-                    q.push(sym);
-                }
-            }
-        }
-    }
-    return generating_symbols.find(grammar.axiom_) == generating_symbols.end();
+    return generating.find(grammar.axiom_) != generating.end();
 }
 
 bool GrammarFactory::HasDirectLeftRecursion(Grammar &grammar)
