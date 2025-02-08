@@ -107,6 +107,14 @@ Grammar GrammarFactory::Lv2()
     cmb.g_ = std::move(cmb_updated_grammar);
     // -----------------------------------------------------
 
+    // DEBUG ---------------------------
+    std::cout << "DONE: STEP 3\n";
+    std::cout << "----------------------\n";
+    std::cout << "CMB GRAMMAR\n";
+    cmb.Debug();
+    std::cout << "----------------------\n";
+    // END DEBUG -----------------------
+
     // STEP 4 Change one base terminal to another that is not in cmb
     std::unordered_set<std::string> cmb_terminals = cmb.st_.terminals_wtho_eol_;
     std::unordered_set<std::string> terminal_alphabet_set(terminal_alphabet_.begin(), terminal_alphabet_.end());
@@ -132,10 +140,19 @@ Grammar GrammarFactory::Lv2()
             }
         }
     }
-    base.st_.terminals_.erase(terminal_to_replace);
-    base.st_.terminals_.insert(new_terminal);
+    base.st_.terminals_wtho_eol_.erase(terminal_to_replace);
+    base.st_.terminals_wtho_eol_.insert(new_terminal);
+    base_terminal_dist = std::uniform_int_distribution<size_t>(0, base.st_.terminals_wtho_eol_.size() - 1);
     // -----------------------------------------------------
     
+    // DEBUG ---------------------------
+    std::cout << "DONE: STEP 4\n";
+    std::cout << "----------------------\n";
+    std::cout << "BASE GRAMMAR\n";
+    base.Debug();
+    std::cout << "----------------------\n";
+    // END DEBUG -----------------------
+
     // STEP 5 Change one random terminal -> terminal B
     terminal_to_replace = *std::next(base.st_.terminals_wtho_eol_.begin(), base_terminal_dist(gen));
     for (auto& [nt, prods] : base.g_) {

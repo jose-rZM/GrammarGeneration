@@ -14,6 +14,7 @@ Grammar::Grammar(const std::unordered_map<std::string, std::vector<production>> 
         for (const auto& prod : prods) {
             for (const std::string &symbol : prod) {
                 if (symbol == "EPSILON") {
+                    st_.PutSymbol(symbol, true);
                     continue;
                 } else if (std::islower(symbol[0])) {
                     st_.PutSymbol(symbol, true);
