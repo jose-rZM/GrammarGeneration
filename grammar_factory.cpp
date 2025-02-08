@@ -214,7 +214,7 @@ bool GrammarFactory::IsInfinite(Grammar &grammar)
             }
         }
     }
-    return generating.find(grammar.axiom_) != generating.end();
+    return generating.find(grammar.axiom_) == generating.end();
 }
 
 bool GrammarFactory::HasDirectLeftRecursion(Grammar &grammar)
