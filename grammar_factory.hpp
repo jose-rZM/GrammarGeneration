@@ -87,6 +87,8 @@ struct GrammarFactory {
      */
     Grammar Lv3();
 
+    FactoryItem CreateLv2Item();
+
     // -------- SANITY CHECKS --------
 
     /**
@@ -118,6 +120,7 @@ struct GrammarFactory {
      */
     bool HasDirectLeftRecursion(Grammar& grammar);
 
+  private:
     /**
      * @brief A vector of FactoryItem objects representing different level 1
      * grammar items created by the Init method.

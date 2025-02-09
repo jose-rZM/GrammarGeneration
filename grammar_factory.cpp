@@ -67,6 +67,17 @@ Grammar GrammarFactory::Lv1() {
 }
 
 Grammar GrammarFactory::Lv2() {
+    return Grammar(CreateLv2Item().g_);
+}
+
+Grammar GrammarFactory::Lv3() {
+    std::random_device                    rd;
+    std::mt19937                          gen(rd());
+    std::uniform_int_distribution<size_t> dist(0, items.size() - 1);
+    return Grammar(items.at(dist(gen)).g_);
+}
+
+GrammarFactory::FactoryItem GrammarFactory::CreateLv2Item() {
     // STEP 1 Choose a random base grammar ----------------------------------
     std::random_device                    rd;
     std::mt19937                          gen(rd());
@@ -160,14 +171,7 @@ Grammar GrammarFactory::Lv2() {
                                     prods.end());
     }
 
-    return Grammar(combined_grammar);
-}
-
-Grammar GrammarFactory::Lv3() {
-    std::random_device                    rd;
-    std::mt19937                          gen(rd());
-    std::uniform_int_distribution<size_t> dist(0, items.size() - 1);
-    return Grammar(items.at(dist(gen)).g_);
+    return FactoryItem(combined_grammar);
 }
 
 bool GrammarFactory::HasUnreachableSymbols(Grammar& grammar) {
