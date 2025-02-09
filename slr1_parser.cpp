@@ -167,9 +167,17 @@ bool SLR1Parser::SolveLRConflicts(const state& st) {
                 for (const std::string& sym : follows) {
                     auto it = actions_[st.id].find(sym);
                     if (it != actions_[st.id].end()) {
-                        // Si ya hay una acción y no es REDUCE, hay conflicto
-                        if (it->second.action != Action::Reduce) {
-                            return false;
+                        // Si ya hay un Reduce, comparar las reglas.
+                        // REDUCE/REDUCE si reglas distintas
+                        if (it->second.action == Action::Reduce) {
+                            if (!(it->second.item->antecedent ==
+                                      item.antecedent &&
+                                  it->second.item->consequent ==
+                                      item.consequent)) {
+                                return false;
+                            }
+                        } else {
+                            return false; // SHIFT/REDUCE
                         }
                     }
                     actions_[st.id][sym] = {&item, Action::Reduce};
