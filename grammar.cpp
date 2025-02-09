@@ -8,11 +8,12 @@
 #include <utility>
 #include <vector>
 
-Grammar::Grammar(const std::unordered_map<std::string, std::vector<production>> &grammar) {
-    for (const auto &[nt, prods] : grammar) {
+Grammar::Grammar(
+    const std::unordered_map<std::string, std::vector<production>>& grammar) {
+    for (const auto& [nt, prods] : grammar) {
         st_.PutSymbol(nt, false);
         for (const auto& prod : prods) {
-            for (const std::string &symbol : prod) {
+            for (const std::string& symbol : prod) {
                 if (symbol == "EPSILON") {
                     st_.PutSymbol(symbol, true);
                     continue;
@@ -23,14 +24,13 @@ Grammar::Grammar(const std::unordered_map<std::string, std::vector<production>> 
         }
     }
     axiom_ = "S";
-    g_ = std::move(grammar);
+    g_     = std::move(grammar);
     if (g_.find(axiom_) == g_.end()) {
         // S -> firstNonTerminal $
         g_[axiom_] = {{*st_.non_terminals_.begin(), st_.EOL_}};
         st_.PutSymbol(axiom_, false);
     }
 }
-
 
 /*void Grammar::AddRule(const std::string& antecedent,
                       const std::string& consequent) {

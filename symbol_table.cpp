@@ -3,7 +3,6 @@
 #include <unordered_map>
 #include <vector>
 
-
 void symbol_table::PutSymbol(const std::string& identifier, bool isTerminal) {
     if (isTerminal) {
         st_.insert({identifier, TERMINAL});

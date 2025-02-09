@@ -20,7 +20,7 @@ class LL1Parser {
      * @param gr Grammar object to parse with
      */
     LL1Parser(Grammar gr);
-    
+
     /**
      * @brief Creates the LL(1) parsing table for the grammar.
      *
@@ -106,7 +106,6 @@ class LL1Parser {
      */
     std::unordered_set<std::string> Follow(const std::string& arg);
 
-    
     /**
      * @brief Recursive utility function to compute the FOLLOW set for a
      * non-terminal.
@@ -133,8 +132,7 @@ class LL1Parser {
                     std::unordered_set<std::string>& visited,
                     std::unordered_set<std::string>& next_symbols);
 
-    
- /**
+    /**
      * @brief Computes the prediction symbols for a given
      * production rule.
      *
@@ -159,7 +157,6 @@ class LL1Parser {
     std::unordered_set<std::string>
     PredictionSymbols(const std::string&              antecedent,
                       const std::vector<std::string>& consequent);
-
 
     /// @brief The LL(1) parsing table, mapping non-terminals and terminals to
     /// productions.

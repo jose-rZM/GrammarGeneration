@@ -1,26 +1,18 @@
 #include <map>
-#include <string>
 #include <span>
+#include <string>
 #include <unordered_set>
 
 #include "grammar.hpp"
 #include "lr0_item.hpp"
 #include "state.hpp"
 
-class SLR1Parser
-{
-public:
-    enum class Action
-    {
-        Shift,
-        Reduce,
-        Accept,
-        Empty
-    };
-    struct s_action
-    {
-        const Lr0Item *item;
-        Action action;
+class SLR1Parser {
+  public:
+    enum class Action { Shift, Reduce, Accept, Empty };
+    struct s_action {
+        const Lr0Item* item;
+        Action         action;
     };
     using action_table =
         std::map<unsigned int, std::map<std::string, SLR1Parser::s_action>>;
@@ -28,13 +20,13 @@ public:
         std::map<unsigned int, std::map<std::string, unsigned int>>;
     SLR1Parser(Grammar gr);
     std::unordered_set<Lr0Item> allItems() const;
-    void DebugStates() const;
-    void DebugActions() const;
-    void DebugTable() const;
-    void Closure(std::unordered_set<Lr0Item> &items);
-    void ClosureUtil(std::unordered_set<Lr0Item> &items, unsigned int size,
-                     std::unordered_set<std::string> &visited);
-    bool SolveLRConflicts(const state &st);
+    void                        DebugStates() const;
+    void                        DebugActions() const;
+    void                        DebugTable() const;
+    void                        Closure(std::unordered_set<Lr0Item>& items);
+    void ClosureUtil(std::unordered_set<Lr0Item>& items, unsigned int size,
+                     std::unordered_set<std::string>& visited);
+    bool SolveLRConflicts(const state& st);
 
     /**
      * @brief Calculates the FIRST set for a given production rule in a grammar.
@@ -62,8 +54,8 @@ public:
      * symbols that can start derivations of the rule, and possibly epsilon if
      * the rule can derive an empty string.
      */
-    void First(std::span<const std::string> rule,
-               std::unordered_set<std::string> &result);
+    void First(std::span<const std::string>     rule,
+               std::unordered_set<std::string>& result);
     /**
      * @brief Computes the FIRST sets for all non-terminal symbols in the
      * grammar.
@@ -93,7 +85,7 @@ public:
      * @return An unordered set of strings containing symbols that form the
      * FOLLOW set for `arg`.
      */
-    std::unordered_set<std::string> Follow(const std::string &arg);
+    std::unordered_set<std::string> Follow(const std::string& arg);
     /**
      * @brief Recursive utility function to compute the FOLLOW set for a
      * non-terminal.
@@ -116,16 +108,16 @@ public:
      * @param next_symbols An unordered set to accumulate symbols forming the
      * FOLLOW set of the target non-terminal as they are discovered.
      */
-    void FollowUtil(const std::string &arg,
-                    std::unordered_set<std::string> &visited,
-                    std::unordered_set<std::string> &next_symbols);
+    void FollowUtil(const std::string&               arg,
+                    std::unordered_set<std::string>& visited,
+                    std::unordered_set<std::string>& next_symbols);
 
     void MakeInitialState();
     bool MakeParser();
 
-    Grammar gr_;
+    Grammar                                                          gr_;
     std::unordered_map<std::string, std::unordered_set<std::string>> first_sets;
-    action_table actions_;
-    transition_table transitions_;
+    action_table                                                     actions_;
+    transition_table          transitions_;
     std::unordered_set<state> states_;
 };

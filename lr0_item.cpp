@@ -1,6 +1,6 @@
 #include <cstddef>
 #include <functional>
-#include <iostream>  // DEBUG ONLY
+#include <iostream> // DEBUG ONLY
 #include <string>
 #include <utility>
 #include <vector>
@@ -17,8 +17,7 @@ Lr0Item::Lr0Item(std::string antecedent, std::vector<std::string> consequent)
 
 Lr0Item::Lr0Item(std::string antecedent, std::vector<std::string> consequent,
                  unsigned int dot)
-    : antecedent(std::move(antecedent)),
-      consequent(std::move(consequent)),
+    : antecedent(std::move(antecedent)), consequent(std::move(consequent)),
       dot(dot) {
     if (this->consequent.size() == 1 && this->consequent[0] == "EPSILON") {
         dot = 1;
@@ -26,18 +25,20 @@ Lr0Item::Lr0Item(std::string antecedent, std::vector<std::string> consequent,
 }
 
 std::string Lr0Item::nextToDot() const {
-    if (dot == consequent.size() || (dot < consequent.size() && consequent[dot] == "$")) {
+    if (dot == consequent.size() ||
+        (dot < consequent.size() && consequent[dot] == "$")) {
         return "EPSILON";
     }
     return consequent[dot];
 }
 
-void Lr0Item::advanceDot() { dot++; }
+void Lr0Item::advanceDot() {
+    dot++;
+}
 
 bool Lr0Item::isComplete() const {
     return dot >= consequent.size() ||
-           (consequent.size() == 1 &&
-            consequent[0] == "EPSILON") ||
+           (consequent.size() == 1 && consequent[0] == "EPSILON") ||
            (dot < consequent.size() && consequent[dot] == "$");
 }
 
@@ -74,4 +75,4 @@ std::size_t hash<Lr0Item>::operator()(const Lr0Item& item) const {
 
     return seed;
 }
-}  // namespace std
+} // namespace std

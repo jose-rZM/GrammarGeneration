@@ -17,8 +17,8 @@ struct symbol_table {
 
     /// @brief Main symbol table, mapping identifiers to a pair of symbol type
     /// and its regex.
-    std::unordered_map<std::string, symbol_type>
-        st_{{EOL_, TERMINAL}, {EPSILON_, TERMINAL}};
+    std::unordered_map<std::string, symbol_type> st_{{EOL_, TERMINAL},
+                                                     {EPSILON_, TERMINAL}};
 
     std::unordered_set<std::string> terminals_{EOL_};
     std::unordered_set<std::string> terminals_wtho_eol_{};
@@ -47,7 +47,6 @@ struct symbol_table {
      * @return true if the symbol is terminal, otherwise false.
      */
     bool IsTerminal(const std::string& s);
-
 
     /**
      * @brief Prints all symbols and their properties in the symbol table.
