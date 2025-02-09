@@ -13,7 +13,24 @@ void SanityChecks(GrammarFactory& factory, Grammar& gr) {
               << factory.HasDirectLeftRecursion(gr) << "\n";
 }
 
-int main() {
+Grammar GenLL1Grammar(int level) {
+    GrammarFactory factory;
+    factory.Init();
+    Grammar   gr = factory.PickOne(level);
+    LL1Parser ll1(gr);
+    while (factory.IsInfinite(gr) || factory.HasUnreachableSymbols(gr) ||
+           factory.HasDirectLeftRecursion(gr) || !ll1.CreateLL1Table()) {
+        factory.RemoveLeftRecursion(gr);
+        ll1 = LL1Parser(gr);
+        if (ll1.CreateLL1Table()) {
+            break;
+        }
+        gr = factory.PickOne(3);
+    }
+    return gr;
+}
+
+/*int main() {
     GrammarFactory factory;
     factory.Init();
     Grammar    gr = factory.PickOne(3);
@@ -34,4 +51,11 @@ int main() {
         std::cout << "Is slr1? : " << slr1.MakeParser() << "\n";
         SanityChecks(factory, gr);
     }
+}*/
+
+int main() {
+    Grammar gr = GenLL1Grammar(3);
+    gr.Debug();
+    LL1Parser ll1(gr);
+    std::cout << "Is ll1? : " << ll1.CreateLL1Table() << "\n";
 }
