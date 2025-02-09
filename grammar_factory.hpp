@@ -120,6 +120,9 @@ struct GrammarFactory {
      */
     bool HasDirectLeftRecursion(Grammar& grammar);
 
+    // -------- TRANSFORMATIONS --------
+    void RemoveLeftRecursion(Grammar& grammar);
+
   private:
     /**
      * @brief A vector of FactoryItem objects representing different level 1

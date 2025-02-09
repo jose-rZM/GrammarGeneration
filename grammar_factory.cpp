@@ -334,6 +334,48 @@ bool GrammarFactory::HasDirectLeftRecursion(Grammar& grammar) {
     return false;
 }
 
+void GrammarFactory::RemoveLeftRecursion(Grammar& grammar) {
+    if (!HasDirectLeftRecursion(grammar)) {
+        return;
+    }
+    std::unordered_map<std::string, std::vector<production>> new_rules;
+    for (const auto& [nt, productions] : grammar.g_) {
+        std::vector<production> alpha;
+        std::vector<production> beta;
+        std::string             new_non_terminal = nt + "'";
+        for (const auto& prod : productions) {
+            if (!prod.empty() && prod[0] == nt) {
+                alpha.push_back({prod.begin() + 1, prod.end()});
+            } else {
+                if (prod[0] == grammar.st_.EPSILON_) {
+                    continue;
+                }
+                beta.push_back(prod);
+            }
+        }
+        if (!alpha.empty()) {
+            if (beta.empty()) {
+                beta.push_back({});
+            }
+            for (auto& b : beta) {
+                b.push_back(new_non_terminal);
+            }
+            for (auto& a : alpha) {
+                a.push_back(new_non_terminal);
+            }
+            alpha.push_back({grammar.st_.EPSILON_});
+            new_rules[nt]               = beta;
+            new_rules[new_non_terminal] = alpha;
+            grammar.st_.PutSymbol(new_non_terminal, false);
+        } else {
+            new_rules[nt] = productions;
+        }
+    }
+    // EPSILON was introduced to the grammar, ensure it is in the symbol table
+    grammar.st_.PutSymbol(grammar.st_.EPSILON_, true);
+    grammar.g_ = std::move(new_rules);
+}
+
 GrammarFactory::FactoryItem::FactoryItem(
     const std::unordered_map<std::string, std::vector<production>>& grammar) {
     for (const auto& [nt, prods] : grammar) {
