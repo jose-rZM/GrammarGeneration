@@ -92,6 +92,10 @@ struct GrammarFactory {
      */
     Grammar Lv3();
 
+    Grammar Lv4();
+    Grammar Lv5();
+    Grammar Lv6();
+
     FactoryItem CreateLv2Item();
 
     // -------- SANITY CHECKS --------
@@ -136,7 +140,8 @@ struct GrammarFactory {
     /**
      * @brief A vector of terminal symbols (alphabet) used in the grammar.
      */
-    std::vector<std::string> terminal_alphabet_{"a", "b", "c", "d", "e"};
+    std::vector<std::string> terminal_alphabet_{"a", "b", "c", "d", "e",
+                                                "f", "g", "h", "i", "j"};
 
     /**
      * @brief A vector of non-terminal symbols (alphabet) used in the grammar.

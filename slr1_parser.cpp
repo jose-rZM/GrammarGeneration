@@ -12,6 +12,7 @@
 #include "grammar.hpp"
 #include "slr1_parser.hpp"
 #include "symbol_table.hpp"
+#include "tabulate.hpp"
 
 SLR1Parser::SLR1Parser(Grammar gr) : gr_(std::move(gr)) {}
 
@@ -39,70 +40,105 @@ void SLR1Parser::DebugStates() const {
     }
 }
 
-void SLR1Parser::DebugActions() const {
-    std::map<std::string, bool> columns;
-
-    for (const auto& row : actions_) {
-        for (const auto& cell : row.second) {
-            columns[cell.first] = true;
+void SLR1Parser::DebugActions() {
+    std::vector<std::string> columns;
+    columns.reserve(gr_.st_.terminals_.size() + gr_.st_.non_terminals_.size());
+    tabulate::Table        table;
+    tabulate::Table::Row_t header = {"State"};
+    for (const auto& s : gr_.st_.terminals_) {
+        if (s == gr_.st_.EPSILON_) {
+            continue;
         }
+        columns.push_back(s);
     }
+    columns.insert(columns.end(), gr_.st_.non_terminals_.begin(),
+                   gr_.st_.non_terminals_.end());
+    header.insert(header.end(), columns.begin(), columns.end());
+    table.add_row(header);
 
-    std::cout << std::setw(10) << "ACTIONS |";
-    for (const auto& col : columns) {
-        std::cout << std::setw(10) << col.first << " |";
-    }
-    std::cout << std::endl;
+    for (unsigned state = 0; state < states_.size(); ++state) {
+        tabulate::Table::Row_t row_data{std::to_string(state)};
 
-    std::cout << std::string(10 + (columns.size() * 13), '-') << std::endl;
+        const auto  action_entry = actions_.find(state);
+        const auto  trans_entry  = transitions_.find(state);
+        const auto& transitions  = trans_entry->second;
+        for (const auto& symbol : columns) {
+            std::string cell        = "-";
+            const bool  is_terminal = gr_.st_.IsTerminal(symbol);
 
-    for (unsigned int state = 0; state < states_.size(); ++state) {
-        std::cout << std::setw(10) << state << " |";
-
-        auto rowIt = actions_.find(state);
-        if (rowIt != actions_.end() && !rowIt->second.empty()) {
-            for (const auto& col : columns) {
-                auto cellIt = rowIt->second.find(col.first);
-                if (cellIt != rowIt->second.end()) {
-                    switch (cellIt->second.action) {
-                    case Action::Accept:
-                        std::cout << std::setw(10) << "A" << " |";
-                        break;
-                    case Action::Reduce:
-                        std::cout << std::setw(10) << "R" << " |";
-                        break;
-                    case Action::Shift:
-                        std::cout << std::setw(10) << "S" << " |";
-                        break;
-                    default:
-                        std::cout << std::setw(10) << "-" << " |";
-                        break;
+            if (!is_terminal) {
+                if (trans_entry != transitions_.end()) {
+                    const auto it = transitions.find(symbol);
+                    if (it != transitions.end()) {
+                        cell = std::to_string(it->second);
                     }
-                } else {
-                    std::cout << std::setw(10) << "-" << " |";
+                }
+            } else {
+                if (action_entry != actions_.end()) {
+                    const auto action_it = action_entry->second.find(symbol);
+                    if (action_it != action_entry->second.end()) {
+                        switch (action_it->second.action) {
+                        case Action::Accept:
+                            cell = "A";
+                            break;
+                        case Action::Reduce:
+                            cell = "R";
+                            break;
+                        case Action::Shift:
+                            if (trans_entry != transitions_.end()) {
+                                const auto shift_it = transitions.find(symbol);
+                                if (shift_it != transitions.end()) {
+                                    cell =
+                                        "S" + std::to_string(shift_it->second);
+                                }
+                            }
+                            break;
+                        default:
+                            break;
+                        }
+                    }
                 }
             }
-        } else {
-            for (const auto& _ : columns) {
-                std::cout << std::setw(10) << "-" << " |";
-            }
+            row_data.push_back(cell);
         }
-        std::cout << std::endl;
+        table.add_row(row_data);
     }
-    for (const auto& row : actions_) {
-        unsigned int state = row.first;
-        for (const auto& cell : row.second) {
-            if (cell.second.action == Action::Reduce) {
-                std::cout << "I" << state << ", " << cell.first
-                          << " -> Reduce ( ";
-                std::cout << cell.second.item->antecedent << " -> ";
-                for (const std::string& symbol : cell.second.item->consequent) {
-                    std::cout << symbol << " ";
+    table.format().font_align(tabulate::FontAlign::center);
+    table.column(0).format().font_color(tabulate::Color::cyan);
+    table.row(0).format().font_color(tabulate::Color::magenta);
+    std::cout << table << std::endl;
+
+    tabulate::Table reduce_table;
+    reduce_table.add_row({"State", "Symbol", "Production Rule"});
+
+    const auto state_color  = tabulate::Color::cyan;
+    const auto symbol_color = tabulate::Color::yellow;
+    const auto rule_color   = tabulate::Color::magenta;
+
+    for (const auto& [state, actions] : actions_) {
+        for (const auto& [symbol, action] : actions) {
+            if (action.action == Action::Reduce) {
+                tabulate::Table::Row_t row;
+                std::string            rule;
+                rule += action.item->antecedent + " -> ";
+                for (const auto& sym : action.item->consequent) {
+                    rule += sym + " ";
                 }
-                std::cout << ")\n";
+                row.push_back(std::to_string(state));
+                row.push_back(symbol);
+                row.push_back(rule);
+                reduce_table.add_row(row);
             }
         }
     }
+    reduce_table.format().font_align(tabulate::FontAlign::center);
+    reduce_table.column(0).format().font_color(state_color);
+    reduce_table.column(1).format().font_color(symbol_color);
+    reduce_table.column(2).format().font_color(rule_color);
+
+    std::cout << "\n\n";
+    std::cout << "Reduce Actions:" << std::endl;
+    std::cout << reduce_table << std::endl;
 }
 
 void SLR1Parser::DebugTable() const {

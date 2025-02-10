@@ -21,7 +21,7 @@ class SLR1Parser {
     SLR1Parser(Grammar gr);
     std::unordered_set<Lr0Item> allItems() const;
     void                        DebugStates() const;
-    void                        DebugActions() const;
+    void                        DebugActions();
     void                        DebugTable() const;
     void                        Closure(std::unordered_set<Lr0Item>& items);
     void ClosureUtil(std::unordered_set<Lr0Item>& items, unsigned int size,
