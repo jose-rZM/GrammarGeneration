@@ -1,4 +1,6 @@
 #include "grammar_factory.hpp"
+#include "ll1_parser.hpp"
+#include "slr1_parser.hpp"
 #include <algorithm>
 #include <iostream>
 #include <queue>
@@ -57,6 +59,40 @@ Grammar GrammarFactory::PickOne(int level) {
         return Grammar();
         break;
     }
+}
+
+Grammar GrammarFactory::GenLL1Grammar(int level) {
+    Grammar   gr = PickOne(level);
+    LL1Parser ll1(gr);
+    while (IsInfinite(gr) || HasUnreachableSymbols(gr) ||
+           HasDirectLeftRecursion(gr) || !ll1.CreateLL1Table()) {
+        RemoveLeftRecursion(gr);
+        ll1 = LL1Parser(gr);
+        if (ll1.CreateLL1Table()) {
+            break;
+        }
+        gr = PickOne(level);
+    }
+    return gr;
+}
+
+Grammar GrammarFactory::GenSLR1Grammar(int level) {
+    Grammar    gr = PickOne(level);
+    SLR1Parser slr1(gr);
+
+    while (IsInfinite(gr) || HasUnreachableSymbols(gr) || !slr1.MakeParser()) {
+        gr   = PickOne(level);
+        slr1 = SLR1Parser(gr);
+    }
+    return gr;
+}
+
+void GrammarFactory::SanityChecks(Grammar& gr) {
+    std::cout << "Sanity check (Is Infinite?) : " << IsInfinite(gr) << "\n";
+    std::cout << "Sanity check (Has Unreachable Symbols?) : "
+              << HasUnreachableSymbols(gr) << "\n";
+    std::cout << "Sanity check (Has Direct Left Recursion?) : "
+              << HasDirectLeftRecursion(gr) << "\n";
 }
 
 Grammar GrammarFactory::Lv1() {

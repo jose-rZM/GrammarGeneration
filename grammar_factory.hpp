@@ -68,6 +68,11 @@ struct GrammarFactory {
      */
     Grammar PickOne(int level);
 
+    Grammar GenLL1Grammar(int level);
+    Grammar GenSLR1Grammar(int level);
+    void    SanityChecks(Grammar& gr);
+
+  private:
     /**
      * @brief Generates a Level 1 grammar.
      * @return A Level 1 grammar.
@@ -122,8 +127,6 @@ struct GrammarFactory {
 
     // -------- TRANSFORMATIONS --------
     void RemoveLeftRecursion(Grammar& grammar);
-
-  private:
     /**
      * @brief A vector of FactoryItem objects representing different level 1
      * grammar items created by the Init method.
