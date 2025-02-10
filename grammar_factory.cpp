@@ -71,7 +71,7 @@ Grammar GrammarFactory::GenLL1Grammar(int level) {
     Grammar   gr = PickOne(level);
     LL1Parser ll1(gr);
     while (IsInfinite(gr) || HasUnreachableSymbols(gr) ||
-           HasDirectLeftRecursion(gr) || ll1.CreateLL1Table()) {
+           HasDirectLeftRecursion(gr) || !ll1.CreateLL1Table()) {
         RemoveLeftRecursion(gr);
         ll1 = LL1Parser(gr);
         if (ll1.CreateLL1Table()) {
