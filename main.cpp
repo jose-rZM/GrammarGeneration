@@ -67,9 +67,46 @@ Grammar GenSLR1Grammar(int level) {
     }
 }*/
 
-int main() {
-    Grammar gr = GenLL1Grammar(3);
-    gr.Debug();
-    LL1Parser ll1(gr);
-    std::cout << "Is ll1? : " << ll1.CreateLL1Table() << "\n";
+int main(int argc, char** argv) {
+    if (argc != 3) {
+        std::cerr << "Usage: " << argv[0] << " [ll|slr] [1|2|3]" << std::endl;
+        return 1;
+    }
+
+    std::string analysis_type = argv[1];
+    int         level;
+
+    try {
+        level = std::stoi(argv[2]);
+    } catch (const std::invalid_argument& e) {
+        std::cerr << "Error: Invalid difficulty level. Please use 1, 2, or 3."
+                  << std::endl;
+        return 1;
+    } catch (const std::out_of_range& e) {
+        std::cerr << "Error: Difficulty level out of range." << std::endl;
+        return 1;
+    }
+
+    if (level < 1 || level > 3) {
+        std::cerr << "Error: Difficulty level must be 1, 2, or 3." << std::endl;
+        return 1;
+    }
+
+    Grammar gr;
+    if (analysis_type == "ll") {
+        gr = GenLL1Grammar(level);
+        LL1Parser ll1(gr);
+        gr.Debug();
+        std::cout << "Is ll1? : " << ll1.CreateLL1Table() << "\n";
+    } else if (analysis_type == "slr") {
+        gr = GenSLR1Grammar(level);
+        SLR1Parser slr1(gr);
+        gr.Debug();
+        std::cout << "Is slr1? : " << slr1.MakeParser() << "\n";
+    } else {
+        std::cerr << "Error: Invalid analysis type. Use 'll' or 'slr'."
+                  << std::endl;
+        return 1;
+    }
+    return 0;
 }
