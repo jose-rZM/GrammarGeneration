@@ -25,7 +25,21 @@ Grammar GenLL1Grammar(int level) {
         if (ll1.CreateLL1Table()) {
             break;
         }
-        gr = factory.PickOne(3);
+        gr = factory.PickOne(level);
+    }
+    return gr;
+}
+
+Grammar GenSLR1Grammar(int level) {
+    GrammarFactory factory;
+    factory.Init();
+    Grammar    gr = factory.PickOne(level);
+    SLR1Parser slr1(gr);
+
+    while (factory.IsInfinite(gr) || factory.HasUnreachableSymbols(gr) ||
+           !slr1.MakeParser()) {
+        gr   = factory.PickOne(level);
+        slr1 = SLR1Parser(gr);
     }
     return gr;
 }
