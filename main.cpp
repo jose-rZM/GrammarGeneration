@@ -37,11 +37,14 @@ int main(int argc, char** argv) {
         LL1Parser ll1(gr);
         gr.Debug();
         std::cout << "Is ll1? : " << ll1.CreateLL1Table() << "\n";
+        ll1.PrintTable();
     } else if (analysis_type == "slr") {
         gr = factory.GenSLR1Grammar(level);
         SLR1Parser slr1(gr);
         gr.Debug();
         std::cout << "Is slr1? : " << slr1.MakeParser() << "\n";
+        slr1.DebugStates();
+        slr1.DebugActions();
     } else {
         std::cerr << "Error: Invalid analysis type. Use 'll' or 'slr'."
                   << std::endl;

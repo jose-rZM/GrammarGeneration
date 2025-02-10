@@ -44,6 +44,8 @@ class LL1Parser {
      */
     bool CreateLL1Table();
 
+    void PrintTable();
+
   private:
     /**
      * @brief Calculates the FIRST set for a given production rule in a grammar.
