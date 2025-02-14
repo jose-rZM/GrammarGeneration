@@ -1,12 +1,9 @@
 #include "grammar.hpp"
-#include "grammar_error.hpp"
 #include "symbol_table.hpp"
-#include <fstream>
 #include <iostream>
-#include <regex>
 #include <unordered_map>
-#include <utility>
 #include <vector>
+#include <algorithm>
 
 Grammar::Grammar(
     const std::unordered_map<std::string, std::vector<production>>& grammar) {
@@ -32,15 +29,6 @@ Grammar::Grammar(
     }
 }
 
-/*void Grammar::AddRule(const std::string& antecedent,
-                      const std::string& consequent) {
-    std::vector<std::string> splitted_consequent{Split(consequent)};
-    if (HasLeftRecursion(antecedent, splitted_consequent)) {
-        throw GrammarError("Grammar has left recursion, it can't be LL1.");
-    }
-    g_[antecedent].push_back(splitted_consequent);
-}*/
-
 void Grammar::SetAxiom(const std::string& axiom) {
     axiom_ = axiom;
 }
@@ -55,7 +43,7 @@ bool Grammar::HasEmptyProduction(const std::string& antecedent) {
 std::vector<std::pair<const std::string, production>>
 Grammar::FilterRulesByConsequent(const std::string& arg) {
     std::vector<std::pair<const std::string, production>> rules;
-    for (const std::pair<const std::string, std::vector<production>>& rule :
+    for (const auto& rule :
          g_) {
         for (const production& prod : rule.second) {
             if (std::find(prod.cbegin(), prod.cend(), arg) != prod.cend()) {

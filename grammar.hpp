@@ -14,18 +14,6 @@ struct Grammar {
             grammar);
 
     /**
-     * @brief Adds a rule to the grammar.
-     *
-     * @param antecedent The left-hand side (LHS) symbol of the rule.
-     * @param consequent The right-hand side (RHS) of the rule as a string.
-     *
-     * Adds a rule to the grammar by specifying the antecedent symbol and the
-     * consequent production. This function processes and adds each rule for
-     * parsing.
-     */
-    void AddRule(const std::string& antecedent, const std::string& consequent);
-
-    /**
      * @brief Sets the axiom (entry point) of the grammar.
      *
      * @param axiom The entry point or start symbol of the grammar.
@@ -68,19 +56,6 @@ struct Grammar {
      * rules, the axiom, and other relevant details.
      */
     void Debug();
-
-    /**
-     * @brief Splits a production string into individual tokens.
-     *
-     * @param s The production string to split.
-     * @return std::vector containing tokens extracted from the production
-     * string.
-     *
-     * The function decomposes a production string into individual symbols based
-     * on the symbol table, allowing terminals and non-terminals to be
-     * identified.
-     */
-    std::vector<std::string> Split(const std::string& s);
 
     /**
      * @brief Checks if a rule exhibits left recursion.
