@@ -72,6 +72,8 @@ struct Grammar {
     bool HasLeftRecursion(const std::string&              antecedent,
                           const std::vector<std::string>& consequent);
 
+    std::string GenerateNewNonTerminal(const std::string& base);
+
     /**
      * @brief Stores the grammar rules with each antecedent mapped to a list of
      * productions.
