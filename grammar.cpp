@@ -1,9 +1,9 @@
 #include "grammar.hpp"
 #include "symbol_table.hpp"
+#include <algorithm>
 #include <iostream>
 #include <unordered_map>
 #include <vector>
-#include <algorithm>
 
 Grammar::Grammar(
     const std::unordered_map<std::string, std::vector<production>>& grammar) {
@@ -43,8 +43,7 @@ bool Grammar::HasEmptyProduction(const std::string& antecedent) {
 std::vector<std::pair<const std::string, production>>
 Grammar::FilterRulesByConsequent(const std::string& arg) {
     std::vector<std::pair<const std::string, production>> rules;
-    for (const auto& rule :
-         g_) {
+    for (const auto& rule : g_) {
         for (const production& prod : rule.second) {
             if (std::find(prod.cbegin(), prod.cend(), arg) != prod.cend()) {
                 rules.emplace_back(rule.first, prod);
