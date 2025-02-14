@@ -24,8 +24,9 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    if (level < 1 || level > 6) {
-        std::cerr << "Error: Difficulty level must be 1, 2, or 3." << std::endl;
+    if (level < 1 || level > 7) {
+        std::cerr << "Error: Difficulty level must be between 1 and 7."
+                  << std::endl;
         return 1;
     }
 
@@ -44,7 +45,6 @@ int main(int argc, char** argv) {
         gr.Debug();
         std::cout << "Is slr1? : " << slr1.MakeParser() << "\n";
         slr1.DebugStates();
-        slr1.DebugTable();
         slr1.DebugActions();
     } else {
         std::cerr << "Error: Invalid analysis type. Use 'll' or 'slr'."
