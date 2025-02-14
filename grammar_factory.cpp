@@ -61,8 +61,11 @@ Grammar GrammarFactory::PickOne(int level) {
     case 5:
         return Lv5();
         break;
-    default:
+    case 6:
         return Lv6();
+        break;
+    default:
+        return Lv7();
         break;
     }
 }
@@ -478,6 +481,97 @@ Grammar GrammarFactory::Lv6() {
     return Grammar(combined_grammar);
 }
 
+Grammar GrammarFactory::Lv7() {
+    Grammar g = Lv6();
+    g.g_.erase("S");
+    FactoryItem base(g.g_);
+
+    // STEP 2 Choose a random LV1 grammar -------------------------------
+    std::random_device                    rd;
+    std::mt19937                          gen(rd());
+    std::uniform_int_distribution<size_t> dist(0, items.size() - 1);
+    FactoryItem                           cmb = items.at(dist(gen));
+
+    // STEP 3 Change non terminals in cmb to C ---------------------------
+    std::unordered_map<std::string, std::vector<production>>
+        cmb_updated_grammar;
+    cmb.st_.non_terminals_.insert("G");
+    for (auto& [nt, prods] : cmb.g_) {
+        std::string new_nt = "G";
+        for (auto& prod : prods) {
+            for (std::string& symbol : prod) {
+                if (!cmb.st_.IsTerminal(symbol)) {
+                    symbol = "G";
+                    cmb.st_.non_terminals_.erase(symbol);
+                }
+            }
+        }
+        cmb_updated_grammar["G"] = prods;
+    }
+    cmb.g_ = std::move(cmb_updated_grammar);
+    cmb.st_.non_terminals_.insert("G");
+
+    // STEP 4 Change one base terminal to another that is not in cmb
+    std::unordered_set<std::string> cmb_terminals = cmb.st_.terminals_wtho_eol_;
+    std::unordered_set<std::string> terminal_alphabet_set(
+        terminal_alphabet_.begin(), terminal_alphabet_.end());
+
+    for (const std::string& terminal : cmb_terminals) {
+        terminal_alphabet_set.erase(terminal);
+    }
+
+    std::uniform_int_distribution<size_t> terminal_dist(
+        0, terminal_alphabet_set.size() - 1);
+    std::vector<std::string> remaining_terminals(terminal_alphabet_set.begin(),
+                                                 terminal_alphabet_set.end());
+    std::string new_terminal = remaining_terminals[terminal_dist(gen)];
+
+    std::uniform_int_distribution<size_t> base_terminal_dist(
+        0, base.st_.terminals_wtho_eol_.size() - 1);
+    std::vector<std::string> base_terminals(
+        base.st_.terminals_wtho_eol_.begin(),
+        base.st_.terminals_wtho_eol_.end());
+    std::string terminal_to_replace =
+        base_terminals.at(base_terminal_dist(gen));
+
+    for (auto& [nt, prods] : base.g_) {
+        for (auto& prod : prods) {
+            for (std::string& symbol : prod) {
+                if (symbol == terminal_to_replace) {
+                    symbol = new_terminal;
+                }
+            }
+        }
+    }
+    base.st_.terminals_wtho_eol_.erase(terminal_to_replace);
+    base.st_.terminals_wtho_eol_.insert(new_terminal);
+    base_terminal_dist = std::uniform_int_distribution<size_t>(
+        0, base.st_.terminals_wtho_eol_.size() - 1);
+    // -----------------------------------------------------
+
+    // STEP 5 Change one random terminal -> terminal B
+    terminal_to_replace = *std::next(base.st_.terminals_wtho_eol_.begin(),
+                                     base_terminal_dist(gen));
+    for (auto& [nt, prods] : base.g_) {
+        for (auto& prod : prods) {
+            for (std::string& symbol : prod) {
+                if (symbol == terminal_to_replace) {
+                    symbol = "G";
+                }
+            }
+        }
+    }
+
+    std::unordered_map<std::string, std::vector<production>> combined_grammar =
+        base.g_;
+    for (auto& [nt, prods] : cmb.g_) {
+        combined_grammar[nt].insert(combined_grammar[nt].end(), prods.begin(),
+                                    prods.end());
+    }
+
+    return Grammar(combined_grammar);
+}
+
 GrammarFactory::FactoryItem GrammarFactory::CreateLv2Item() {
     // STEP 1 Choose a random base grammar ----------------------------------
     std::random_device                    rd;
@@ -694,6 +788,20 @@ void GrammarFactory::RemoveLeftRecursion(Grammar& grammar) {
     grammar.g_ = std::move(new_rules);
 }
 
+void GrammarFactory::RemoveUnitRules(Grammar& grammar) {
+    for (const auto& [nt, prods] : grammar.g_) {
+        for (const auto& prod : prods) {
+            if (prod.size() == 1 && !grammar.st_.IsTerminal(prod[0])) {
+                grammar.g_[nt] = grammar.g_.at(prod[0]);
+                if (HasUnreachableSymbols(grammar)) {
+                    grammar.g_.erase(prod[0]);
+                    grammar.st_.non_terminals_.erase(prod[0]);
+                }
+            }
+        }
+    }
+}
+
 GrammarFactory::FactoryItem::FactoryItem(
     const std::unordered_map<std::string, std::vector<production>>& grammar) {
     for (const auto& [nt, prods] : grammar) {
@@ -709,14 +817,14 @@ GrammarFactory::FactoryItem::FactoryItem(
             }
         }
     }
-    g_ = (grammar);
+    g_ = grammar;
 }
 
 bool GrammarFactory::FactoryItem::HasEmptyProduction(
     const std::string& antecedent) {
     auto& rules = g_.at(antecedent);
     return std::find_if(rules.cbegin(), rules.cend(), [&](const auto& rule) {
-               return rule[0] == "EPSILON";
+               return rule[0] == st_.EPSILON_;
            }) != rules.cend();
 }
 
