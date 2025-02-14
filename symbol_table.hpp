@@ -47,11 +47,4 @@ struct symbol_table {
      * @return true if the symbol is terminal, otherwise false.
      */
     bool IsTerminal(const std::string& s);
-
-    /**
-     * @brief Prints all symbols and their properties in the symbol table.
-     *
-     * Outputs the symbol table for debugging purposes.
-     */
-    void Debug();
 };
