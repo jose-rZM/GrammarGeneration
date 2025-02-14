@@ -1,12 +1,10 @@
 #include <algorithm>
-#include <iomanip>
 #include <iostream>
 #include <map>
 #include <queue>
 #include <stack>
 #include <string>
 #include <unordered_set>
-#include <utility>
 #include <vector>
 
 #include "grammar.hpp"
@@ -21,23 +19,39 @@ std::unordered_set<Lr0Item> SLR1Parser::allItems() const {
     for (const auto& rule : gr_.g_) {
         for (const auto& production : rule.second) {
             for (unsigned int i = 0; i <= production.size(); ++i)
-                items.insert({rule.first, production, i});
+                items.insert({rule.first, production, i, gr_.st_.EPSILON_,
+                              gr_.st_.EOL_});
         }
     }
     return items;
 }
 
 void SLR1Parser::DebugStates() const {
-    for (const auto& s : states_) {
-        std::cout << "State ID: " << s.id << std::endl;
-        std::cout << "Items:" << std::endl;
-        for (const auto& item : s.items) {
-            std::cout << "\t";
-            item.printItem();
-            std::cout << std::endl;
+    tabulate::Table        table;
+    tabulate::Table::Row_t header = {"State ID", "Items"};
+    table.add_row(header);
+
+    for (size_t state = 0; state < states_.size(); ++state) {
+        tabulate::Table::Row_t row;
+        const auto             currentIt = std::find_if(
+            states_.begin(), states_.end(),
+            [state](const auto& st) -> bool { return st.id_ == state; });
+        row.push_back(std::to_string(state));
+        std::string str = "";
+        for (const auto& item : currentIt->items_) {
+            str += item.ToString();
+            str += "\n";
         }
-        std::cout << "-----------------------------" << std::endl;
+        row.push_back(str);
+        table.add_row(row);
     }
+    table.column(0)
+        .format()
+        .font_align(tabulate::FontAlign::center)
+        .font_color(tabulate::Color::cyan);
+    table.row(0).format().font_align(tabulate::FontAlign::center);
+    table.column(1).format().font_color(tabulate::Color::yellow);
+    std::cout << table << "\n";
 }
 
 void SLR1Parser::DebugActions() {
@@ -120,8 +134,8 @@ void SLR1Parser::DebugActions() {
             if (action.action == Action::Reduce) {
                 tabulate::Table::Row_t row;
                 std::string            rule;
-                rule += action.item->antecedent + " -> ";
-                for (const auto& sym : action.item->consequent) {
+                rule += action.item->antecedent_ + " -> ";
+                for (const auto& sym : action.item->consequent_) {
                     rule += sym + " ";
                 }
                 row.push_back(std::to_string(state));
@@ -141,90 +155,52 @@ void SLR1Parser::DebugActions() {
     std::cout << reduce_table << std::endl;
 }
 
-void SLR1Parser::DebugTable() const {
-    std::map<std::string, bool> columns;
-
-    for (const auto& row : transitions_) {
-        for (const auto& cell : row.second) {
-            columns[cell.first] = true;
-        }
-    }
-
-    std::cout << std::setw(10) << "TRANSITIONS |";
-    for (const auto& col : columns) {
-        std::cout << std::setw(10) << col.first << " |";
-    }
-    std::cout << std::endl;
-
-    std::cout << std::string(10 + (columns.size() * 13), '-') << std::endl;
-
-    for (unsigned int state = 0; state < states_.size(); ++state) {
-        std::cout << std::setw(10) << state << " |";
-
-        auto rowIt = transitions_.find(state);
-        if (rowIt != transitions_.end() && !rowIt->second.empty()) {
-            for (const auto& col : columns) {
-                auto cellIt = rowIt->second.find(col.first);
-                if (cellIt != rowIt->second.end()) {
-                    std::cout << std::setw(10) << cellIt->second << " |";
-                } else {
-                    std::cout << std::setw(10) << "-" << " |";
-                }
-            }
-        } else {
-            for (const auto& _ : columns) {
-                std::cout << std::setw(10) << "-" << " |";
-            }
-        }
-        std::cout << std::endl;
-    }
-}
-
 void SLR1Parser::MakeInitialState() {
     state initial;
-    initial.id = 0;
-    auto axiom = gr_.g_.at(gr_.axiom_);
+    initial.id_ = 0;
+    auto axiom  = gr_.g_.at(gr_.axiom_);
     // the axiom must be unique
-    initial.items.insert({gr_.axiom_, axiom[0], 0});
-    Closure(initial.items);
+    initial.items_.insert(
+        {gr_.axiom_, axiom[0], gr_.st_.EPSILON_, gr_.st_.EOL_});
+    Closure(initial.items_);
     states_.insert(initial);
 }
 
 bool SLR1Parser::SolveLRConflicts(const state& st) {
-    for (const Lr0Item& item : st.items) {
-        if (item.isComplete()) {
+    for (const Lr0Item& item : st.items_) {
+        if (item.IsComplete()) {
             // Regla 3: Si el ítem es del axioma, ACCEPT en EOL
-            if (item.antecedent == gr_.axiom_) {
-                actions_[st.id][gr_.st_.EOL_] = {nullptr, Action::Accept};
+            if (item.antecedent_ == gr_.axiom_) {
+                actions_[st.id_][gr_.st_.EOL_] = {nullptr, Action::Accept};
             } else {
                 // Regla 2: Si el ítem es completo, REDUCE en FOLLOW(A)
                 std::unordered_set<std::string> follows =
-                    Follow(item.antecedent);
+                    Follow(item.antecedent_);
                 for (const std::string& sym : follows) {
-                    auto it = actions_[st.id].find(sym);
-                    if (it != actions_[st.id].end()) {
+                    auto it = actions_[st.id_].find(sym);
+                    if (it != actions_[st.id_].end()) {
                         // Si ya hay un Reduce, comparar las reglas.
                         // REDUCE/REDUCE si reglas distintas
                         if (it->second.action == Action::Reduce) {
-                            if (!(it->second.item->antecedent ==
-                                      item.antecedent &&
-                                  it->second.item->consequent ==
-                                      item.consequent)) {
+                            if (!(it->second.item->antecedent_ ==
+                                      item.antecedent_ &&
+                                  it->second.item->consequent_ ==
+                                      item.consequent_)) {
                                 return false;
                             }
                         } else {
                             return false; // SHIFT/REDUCE
                         }
                     }
-                    actions_[st.id][sym] = {&item, Action::Reduce};
+                    actions_[st.id_][sym] = {&item, Action::Reduce};
                 }
             }
         } else {
             // Regla 1: Si hay un terminal después del punto, hacemos SHIFT
-            std::string nextToDot = item.nextToDot();
+            std::string nextToDot = item.NextToDot();
             if (gr_.st_.IsTerminal(nextToDot)) {
-                auto it = actions_[st.id].find(nextToDot);
-                if (it != actions_[st.id].end()) {
+                auto it = actions_[st.id_].find(nextToDot);
+                if (it != actions_[st.id_].end()) {
                     // Si hay una acción previa, hay conflicto si es REDUCE
                     if (it->second.action == Action::Reduce) {
                         return false;
@@ -232,7 +208,7 @@ bool SLR1Parser::SolveLRConflicts(const state& st) {
                     // Si ya hay un SHIFT en esa celda, no hay conflicto (varios
                     // SHIFT están permitidos)
                 }
-                actions_[st.id][nextToDot] = {nullptr, Action::Shift};
+                actions_[st.id_][nextToDot] = {nullptr, Action::Shift};
             }
         }
     }
@@ -253,30 +229,31 @@ bool SLR1Parser::MakeParser() {
         pending.pop();
         auto it = std::find_if(
             states_.begin(), states_.end(),
-            [current](const state& st) -> bool { return st.id == current; });
+            [current](const state& st) -> bool { return st.id_ == current; });
         if (it == states_.end()) {
             break;
         }
         const state& qi = *it;
-        std::for_each(
-            qi.items.begin(), qi.items.end(), [&](const Lr0Item& item) -> void {
-                std::string next = item.nextToDot();
-                if (next != gr_.st_.EPSILON_ && next != gr_.st_.EOL_) {
-                    nextSymbols.insert(next);
-                }
-            });
+        std::for_each(qi.items_.begin(), qi.items_.end(),
+                      [&](const Lr0Item& item) -> void {
+                          std::string next = item.NextToDot();
+                          if (next != gr_.st_.EPSILON_ &&
+                              next != gr_.st_.EOL_) {
+                              nextSymbols.insert(next);
+                          }
+                      });
         for (const std::string& symbol : nextSymbols) {
             state newState;
-            newState.id = i;
-            for (const auto& item : qi.items) {
-                if (item.nextToDot() == symbol) {
+            newState.id_ = i;
+            for (const auto& item : qi.items_) {
+                if (item.NextToDot() == symbol) {
                     Lr0Item newItem = item;
-                    newItem.advanceDot();
-                    newState.items.insert(newItem);
+                    newItem.AdvanceDot();
+                    newState.items_.insert(newItem);
                 }
             }
 
-            Closure(newState.items);
+            Closure(newState.items_);
             auto result = states_.insert(newState);
             std::map<std::string, unsigned int> column;
 
@@ -292,10 +269,10 @@ bool SLR1Parser::MakeParser() {
                 ++i;
             } else {
                 if (transitions_.find(current) != transitions_.end()) {
-                    transitions_[current].insert({symbol, result.first->id});
+                    transitions_[current].insert({symbol, result.first->id_});
                 } else {
                     std::map<std::string, unsigned int> column;
-                    column.insert({symbol, result.first->id});
+                    column.insert({symbol, result.first->id_});
                     transitions_.insert({current, column});
                 }
             }
@@ -321,7 +298,7 @@ void SLR1Parser::ClosureUtil(std::unordered_set<Lr0Item>&     items,
     std::unordered_set<Lr0Item> newItems;
 
     for (const auto& item : items) {
-        std::string next = item.nextToDot();
+        std::string next = item.NextToDot();
         if (next == gr_.st_.EPSILON_) {
             continue;
         }
@@ -331,7 +308,8 @@ void SLR1Parser::ClosureUtil(std::unordered_set<Lr0Item>&     items,
             const std::vector<production>& rules = gr_.g_.at(next);
             std::for_each(rules.begin(), rules.end(),
                           [&](const auto& rule) -> void {
-                              newItems.insert({item.nextToDot(), rule});
+                              newItems.insert({item.NextToDot(), rule,
+                                               gr_.st_.EPSILON_, gr_.st_.EOL_});
                           });
             visited.insert(next);
         }

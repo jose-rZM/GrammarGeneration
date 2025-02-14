@@ -1,3 +1,5 @@
+#pragma once
+
 #include <map>
 #include <span>
 #include <string>
@@ -22,7 +24,6 @@ class SLR1Parser {
     std::unordered_set<Lr0Item> allItems() const;
     void                        DebugStates() const;
     void                        DebugActions();
-    void                        DebugTable() const;
     void                        Closure(std::unordered_set<Lr0Item>& items);
     void ClosureUtil(std::unordered_set<Lr0Item>& items, unsigned int size,
                      std::unordered_set<std::string>& visited);
