@@ -7,10 +7,8 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
-#include <utility>
 
 #include "grammar.hpp"
-#include "grammar_error.hpp"
 #include "ll1_parser.hpp"
 #include "symbol_table.hpp"
 #include "tabulate.hpp"
@@ -197,7 +195,7 @@ void LL1Parser::PrintTable() {
                 row_data.push_back("-");
             }
         }
-        auto& tb = table.add_row(row_data);
+        table.add_row(row_data);
     }
 
     table[0].format().font_color(Color::cyan).font_style({FontStyle::bold});
