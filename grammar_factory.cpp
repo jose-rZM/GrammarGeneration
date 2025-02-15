@@ -802,6 +802,57 @@ void GrammarFactory::RemoveUnitRules(Grammar& grammar) {
     }
 }
 
+void GrammarFactory::LeftFactorize(Grammar& grammar) {
+    std::unordered_map<std::string, std::vector<production>> new_rules;
+
+    for (const auto& [nt, productions] : grammar.g_) {
+        if (productions.size() < 2) {
+            new_rules[nt] = productions;
+            continue;
+        }
+
+        std::vector<production> sorted_prods = productions;
+        std::sort(sorted_prods.begin(), sorted_prods.end());
+
+        std::vector<production>  new_productions;
+        std::vector<production>  pending_group;
+        std::vector<std::string> common_prefix;
+
+        for (size_t i = 0; i < sorted_prods.size(); ++i) {
+            if (i > 0) {
+                auto mismatch = std::mismatch(
+                    sorted_prods[i - 1].begin(), sorted_prods[i - 1].end(),
+                    sorted_prods[i].begin(), sorted_prods[i].end());
+                size_t prefix_len =
+                    std::distance(sorted_prods[i - 1].begin(), mismatch.first);
+
+                if (prefix_len == 0) {
+                    if (!pending_group.empty()) {
+                        std::string new_nt = grammar.GenerateNewNonTerminal(nt);
+                        new_productions.push_back(common_prefix);
+                        new_productions.back().push_back(new_nt);
+                        new_rules[new_nt] = pending_group;
+                    }
+                    pending_group.clear();
+                    common_prefix.clear();
+                }
+            }
+            if (common_prefix.empty()) {
+                common_prefix = sorted_prods[i];
+            }
+            pending_group.push_back(sorted_prods[i]);
+        }
+        if (!pending_group.empty()) {
+            std::string new_nt = grammar.GenerateNewNonTerminal(nt);
+            new_productions.push_back(common_prefix);
+            new_productions.back().push_back(new_nt);
+            new_rules[new_nt] = pending_group;
+        }
+        new_rules[nt] = new_productions;
+    }
+    grammar.g_ = std::move(new_rules);
+}
+
 GrammarFactory::FactoryItem::FactoryItem(
     const std::unordered_map<std::string, std::vector<production>>& grammar) {
     for (const auto& [nt, prods] : grammar) {

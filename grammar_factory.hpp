@@ -88,7 +88,6 @@ struct GrammarFactory {
      */
     void SanityChecks(Grammar& gr);
 
-  private:
     /**
      * @brief Generates a Level 1 grammar.
      * @return A Level 1 grammar.
