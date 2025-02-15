@@ -17,13 +17,23 @@ OBJ = $(SRC:.cpp=.o)
 
 TARGET = gen
 
+TEST_SRC = tests.cpp
+TEST_OBJ = $(TEST_SRC:.cpp=.o)
+TEST_TARGET = run_tests
+GTEST_LIBS = -lgtest -lgtest_main -lpthread
 all: $(TARGET)
 
 $(TARGET): $(OBJ)
 	$(CXX) $(OBJ) -o $(TARGET) $(LIBDIR)
 
+$(TEST_TARGET): $(TEST_OBJ) $(filter-out main.o, $(OBJ))
+	$(CXX) $(filter-out main.o, $(OBJ)) $(TEST_OBJ) -o $(TEST_TARGET) $(LIBDIR) $(GTEST_LIBS)
+
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) $(INCDIR) -c $< -o $@
+
+test: $(TEST_TARGET)
+	./$(TEST_TARGET)
 
 clean:
 	rm -f $(OBJ)
