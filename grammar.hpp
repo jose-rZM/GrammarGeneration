@@ -74,6 +74,9 @@ struct Grammar {
 
     std::string GenerateNewNonTerminal(const std::string& base);
 
+    void AddProduction(const std::string&              antecedent,
+                       const std::vector<std::string>& consequent);
+
     /**
      * @brief Stores the grammar rules with each antecedent mapped to a list of
      * productions.

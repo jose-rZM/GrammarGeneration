@@ -72,7 +72,7 @@ bool Grammar::HasLeftRecursion(const std::string&              antecedent,
 }
 
 std::string Grammar::GenerateNewNonTerminal(const std::string& base) {
-    unsigned i = 1;
+    unsigned    i = 1;
     std::string new_nt;
 
     do {
@@ -81,4 +81,9 @@ std::string Grammar::GenerateNewNonTerminal(const std::string& base) {
     } while (st_.non_terminals_.find(new_nt) != st_.non_terminals_.end());
     st_.non_terminals_.insert(new_nt);
     return new_nt;
+}
+
+void Grammar::AddProduction(const std::string&              antecedent,
+                            const std::vector<std::string>& consequent) {
+    g_[antecedent].push_back(std::move(consequent));
 }
