@@ -12,6 +12,7 @@ class LL1Parser {
         std::string, std::unordered_map<std::string, std::vector<production>>>;
 
   public:
+    LL1Parser() = default;
     /**
      * @brief Constructs an LL1Parser with a grammar object and an input file.
      *
@@ -44,7 +45,6 @@ class LL1Parser {
 
     void PrintTable();
 
-  private:
     /**
      * @brief Calculates the FIRST set for a given production rule in a grammar.
      *

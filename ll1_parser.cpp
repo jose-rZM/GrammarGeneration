@@ -1,9 +1,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <iostream>
-#include <ranges>
 #include <span>
-#include <stack>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
