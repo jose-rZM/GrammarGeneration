@@ -321,50 +321,65 @@ void SLR1Parser::ClosureUtil(std::unordered_set<Lr0Item>&     items,
 
 void SLR1Parser::First(std::span<const std::string>     rule,
                        std::unordered_set<std::string>& result) {
-    if (rule.size() == 1 && rule[0] == gr_.st_.EPSILON_) {
+    if (rule.empty() || (rule.size() == 1 && rule[0] == gr_.st_.EPSILON_)) {
         result.insert(gr_.st_.EPSILON_);
+        return;
     }
-    std::unordered_set<std::string> ret;
-    size_t                          i{0};
-    for (const std::string& symbol : rule) {
-        if (gr_.st_.IsTerminal(symbol)) {
-            result.insert(symbol);
-            break;
-        } else {
-            const std::unordered_set<std::string>& fi = first_sets[symbol];
-            result.insert(fi.begin(), fi.end());
-            result.erase(gr_.st_.EPSILON_);
-            if (fi.find(gr_.st_.EPSILON_) == fi.cend()) {
-                break;
-            }
-            ++i;
+
+    if (gr_.st_.IsTerminal(rule[0])) {
+        // EOL cannot be in first sets, if we reach EOL it means that the axiom
+        // is nullable, so epsilon is included instead
+        if (rule[0] == gr_.st_.EOL_) {
+            result.insert(gr_.st_.EPSILON_);
+            return;
+        }
+        result.insert(rule[0]);
+        return;
+    }
+
+    const std::unordered_set<std::string>& fii = first_sets[rule[0]];
+    for (const auto& s : fii) {
+        if (s != gr_.st_.EPSILON_) {
+            result.insert(s);
         }
     }
 
-    if (i == rule.size()) {
-        result.insert(gr_.st_.EPSILON_);
+    if (fii.find(gr_.st_.EPSILON_) == fii.cend()) {
+        return;
     }
+    First(std::span<const std::string>(rule.begin() + 1, rule.end()), result);
 }
 
+// Least fixed point
 void SLR1Parser::ComputeFirstSets() {
-    for (const auto& rule : gr_.g_) {
-        first_sets[rule.first] = {};
+    // Init all FIRST to empty
+    for (const auto& [nonTerminal, _] : gr_.g_) {
+        first_sets[nonTerminal] = {};
     }
-    bool changed{true};
-    while (changed) {
-        changed = false;
-        for (const auto& rule : gr_.g_) {
-            const std::string& nonTerminal = rule.first;
-            std::size_t        beforeSize  = first_sets[nonTerminal].size();
-            for (const auto& prod : rule.second) {
-                First(prod, first_sets[nonTerminal]);
-            }
-            if (first_sets[nonTerminal].size() > beforeSize) {
-                changed = true;
+
+    bool changed;
+    do {
+        auto old_first_sets = first_sets; // Copy current state
+
+        for (const auto& [nonTerminal, productions] : gr_.g_) {
+            for (const auto& prod : productions) {
+                std::unordered_set<std::string> tempFirst;
+                First(prod, tempFirst);
+
+                if (tempFirst.find(gr_.st_.EOL_) != tempFirst.end()) {
+                    tempFirst.erase(gr_.st_.EOL_);
+                    tempFirst.insert(gr_.st_.EPSILON_);
+                }
+
+                auto& current_set = first_sets[nonTerminal];
+                current_set.insert(tempFirst.begin(), tempFirst.end());
             }
         }
-    }
-    first_sets[gr_.axiom_].erase(gr_.st_.EOL_);
+
+        // Until all remain the same
+        changed = (old_first_sets != first_sets);
+
+    } while (changed);
 }
 
 std::unordered_set<std::string> SLR1Parser::Follow(const std::string& arg) {
@@ -381,8 +396,8 @@ std::unordered_set<std::string> SLR1Parser::Follow(const std::string& arg) {
 }
 
 void SLR1Parser::FollowUtil(const std::string&               arg,
-                            std::unordered_set<std::string>& visited,
-                            std::unordered_set<std::string>& next_symbols) {
+                           std::unordered_set<std::string>& visited,
+                           std::unordered_set<std::string>& next_symbols) {
     if (visited.find(arg) != visited.cend()) {
         return;
     }
@@ -399,11 +414,17 @@ void SLR1Parser::FollowUtil(const std::string&               arg,
             if (next_it == rule.second.cend()) {
                 FollowUtil(rule.first, visited, next_symbols);
             } else {
-                First(std::span<const std::string>(next_it, rule.second.cend()),
-                      next_symbols);
-                if (next_symbols.find(gr_.st_.EPSILON_) != next_symbols.end()) {
-                    next_symbols.erase(gr_.st_.EPSILON_);
-                    FollowUtil(rule.first, visited, next_symbols);
+                if (*next_it == gr_.st_.EOL_) {
+                    next_symbols.insert(gr_.st_.EOL_);
+                } else {
+                    First(std::span<const std::string>(next_it,
+                                                       rule.second.cend()),
+                          next_symbols);
+                    if (next_symbols.find(gr_.st_.EPSILON_) !=
+                        next_symbols.end()) {
+                        next_symbols.erase(gr_.st_.EPSILON_);
+                        FollowUtil(rule.first, visited, next_symbols);
+                    }
                 }
             }
             it = std::next(it);

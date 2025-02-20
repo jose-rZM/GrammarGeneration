@@ -504,8 +504,7 @@ TEST(LL1__Test, AllFirstSets) {
         {"A", {"a", "b", "d", g.st_.EPSILON_}},
         {"B", {"b", g.st_.EPSILON_}},
         {"C", {"d", g.st_.EPSILON_}},
-        {"D", {"a", "d"}}
-    };
+        {"D", {"a", "d"}}};
 
     EXPECT_EQ(ll1.first_sets, expected);
 }
@@ -634,16 +633,12 @@ TEST(LL1__Test, AllFollowSets) {
     ll1.ComputeFirstSets();
 
     std::unordered_map<std::string, std::unordered_set<std::string>> result;
-    std::unordered_map<std::string, std::unordered_set<std::string>> expected{{
-        "S", {g.st_.EOL_}
-    },{
-        "E", {")", g.st_.EOL_}
-    }, {
-        "E'", {")", g.st_.EOL_}
-    },  {
-        "T", {"+", ")", g.st_.EOL_}
-    }};
-    
+    std::unordered_map<std::string, std::unordered_set<std::string>> expected{
+        {"S", {g.st_.EOL_}},
+        {"E", {")", g.st_.EOL_}},
+        {"E'", {")", g.st_.EOL_}},
+        {"T", {"+", ")", g.st_.EOL_}}};
+
     for (const std::string& nt : g.st_.non_terminals_) {
         result[nt] = ll1.Follow(nt);
     }
@@ -685,9 +680,8 @@ TEST(LL1__Test, AllFollowSets2) {
         {"A", {g.st_.EOL_}},
         {"B", {"a", "d", "c", g.st_.EOL_}},
         {"C", {"b", g.st_.EOL_}},
-        {"D", {g.st_.EOL_}}
-    };
-    
+        {"D", {g.st_.EOL_}}};
+
     for (const std::string& nt : g.st_.non_terminals_) {
         result[nt] = ll1.Follow(nt);
     }
