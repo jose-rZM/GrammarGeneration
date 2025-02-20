@@ -21,3 +21,7 @@ bool symbol_table::In(const std::string& s) {
 bool symbol_table::IsTerminal(const std::string& s) {
     return terminals_.find(s) != terminals_.end();
 }
+
+bool symbol_table::IsTerminalWthoEol(const std::string& s) {
+    return s != EPSILON_ && terminals_.find(s) != terminals_.end();
+}

@@ -47,4 +47,12 @@ struct symbol_table {
      * @return true if the symbol is terminal, otherwise false.
      */
     bool IsTerminal(const std::string& s);
+
+    /**
+     * @brief Checks if a symbol is a terminal excluding EOL.
+     *
+     * @param s Symbol identifier to check.
+     * @return true if the symbol is terminal, otherwise false.
+     */
+    bool IsTerminalWthoEol(const std::string& s);
 };
