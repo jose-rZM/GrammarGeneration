@@ -45,7 +45,8 @@ void LL1Parser::First(std::span<const std::string>     rule,
     }
 
     if (gr_.st_.IsTerminal(rule[0])) {
-        // EOL cannot be in first sets, if we reach EOL it means that the axiom is nullable, so epsilon is included instead 
+        // EOL cannot be in first sets, if we reach EOL it means that the axiom
+        // is nullable, so epsilon is included instead
         if (rule[0] == gr_.st_.EOL_) {
             result.insert(gr_.st_.EPSILON_);
             return;
@@ -112,19 +113,6 @@ std::unordered_set<std::string> LL1Parser::Follow(const std::string& arg) {
     return next_symbols;
 }
 
-std::unordered_set<std::string>
-LL1Parser::PredictionSymbols(const std::string&              antecedent,
-                             const std::vector<std::string>& consequent) {
-    std::unordered_set<std::string> hd{};
-    First({consequent}, hd);
-    if (hd.find(gr_.st_.EPSILON_) == hd.end()) {
-        return hd;
-    }
-    hd.erase(gr_.st_.EPSILON_);
-    hd.merge(Follow(antecedent));
-    return hd;
-}
-
 void LL1Parser::FollowUtil(const std::string&               arg,
                            std::unordered_set<std::string>& visited,
                            std::unordered_set<std::string>& next_symbols) {
@@ -144,16 +132,35 @@ void LL1Parser::FollowUtil(const std::string&               arg,
             if (next_it == rule.second.cend()) {
                 FollowUtil(rule.first, visited, next_symbols);
             } else {
-                First(std::span<const std::string>(next_it, rule.second.cend()),
-                      next_symbols);
-                if (next_symbols.find(gr_.st_.EPSILON_) != next_symbols.end()) {
-                    next_symbols.erase(gr_.st_.EPSILON_);
-                    FollowUtil(rule.first, visited, next_symbols);
+                if (*next_it == gr_.st_.EOL_) {
+                    next_symbols.insert(gr_.st_.EOL_);
+                } else {
+                    First(std::span<const std::string>(next_it,
+                                                       rule.second.cend()),
+                          next_symbols);
+                    if (next_symbols.find(gr_.st_.EPSILON_) !=
+                        next_symbols.end()) {
+                        next_symbols.erase(gr_.st_.EPSILON_);
+                        FollowUtil(rule.first, visited, next_symbols);
+                    }
                 }
             }
             it = std::next(it);
         }
     }
+}
+
+std::unordered_set<std::string>
+LL1Parser::PredictionSymbols(const std::string&              antecedent,
+                             const std::vector<std::string>& consequent) {
+    std::unordered_set<std::string> hd{};
+    First({consequent}, hd);
+    if (hd.find(gr_.st_.EPSILON_) == hd.end()) {
+        return hd;
+    }
+    hd.erase(gr_.st_.EPSILON_);
+    hd.merge(Follow(antecedent));
+    return hd;
 }
 
 void LL1Parser::PrintTable() {
