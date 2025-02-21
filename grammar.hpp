@@ -4,6 +4,16 @@
 #include <unordered_map>
 #include <vector>
 
+/**
+ * @brief Represents a production rule in the grammar.
+ *
+ * A production is a sequence of symbols (terminals or non-terminals) that form
+ * the right-hand side of a grammar rule. It is used to define how a
+ * non-terminal symbol can be derived in the grammar.
+ *
+ * The production is represented as a vector of strings, where each string is a
+ * symbol in the grammar.
+ */
 using production = std::vector<std::string>;
 
 struct Grammar {
@@ -72,8 +82,19 @@ struct Grammar {
     bool HasLeftRecursion(const std::string&              antecedent,
                           const std::vector<std::string>& consequent);
 
-    std::string GenerateNewNonTerminal(const std::string& base);
-
+    /**
+     * @brief Adds a production rule to the grammar.
+     *
+     * This function adds a production rule to the grammar, where the antecedent
+     * (left-hand side) is a non-terminal symbol, and the consequent (right-hand
+     * side) is a sequence of symbols (terminals or non-terminals). The
+     * production rule defines how the antecedent can be derived in the grammar.
+     *
+     * @param antecedent The non-terminal symbol on the left-hand side of the
+     * production.
+     * @param consequent The sequence of symbols on the right-hand side of the
+     * production.
+     */
     void AddProduction(const std::string&              antecedent,
                        const std::vector<std::string>& consequent);
 
@@ -88,5 +109,8 @@ struct Grammar {
      */
     std::string axiom_;
 
-    symbol_table st_;
+    /**
+     * @brief Symbol Table of the grammar.
+     */
+    SymbolTable st_;
 };

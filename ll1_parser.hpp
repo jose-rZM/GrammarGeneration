@@ -8,6 +8,22 @@
 #include <vector>
 
 class LL1Parser {
+
+    /**
+     * @brief Represents the parsing table for an LL(1) parser.
+     *
+     * The LL(1) parsing table is a nested unordered map that associates each
+     * non-terminal symbol and input symbol with a list of productions to apply
+     * during parsing. It is used to guide the LL(1) parser's decisions based on
+     * the current non-terminal and the next input symbol.
+     *
+     * The table is structured as:
+     * - Outer map: Keys are non-terminal symbols (std::string).
+     * - Inner map: Keys are input symbols (std::string), and values are vectors
+     *   of productions (std::vector<production>) that can be applied.
+     *
+     * @see production
+     */
     using ll1_table = std::unordered_map<
         std::string, std::unordered_map<std::string, std::vector<production>>>;
 

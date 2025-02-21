@@ -11,22 +11,136 @@
 
 class SLR1Parser {
   public:
+    /**
+     * @brief Represents the possible actions in the SLR(1) parsing table.
+     *
+     * This enumeration defines the types of actions that can be taken by the
+     * parser during the parsing process:
+     * - `Shift`: Shift the input symbol onto the stack and transition to a new
+     * state.
+     * - `Reduce`: Reduce a production rule and pop symbols from the stack.
+     * - `Accept`: Accept the input as a valid string in the grammar.
+     * - `Empty`: No action is defined for the current state and input symbol.
+     */
     enum class Action { Shift, Reduce, Accept, Empty };
+
+    /**
+     * @brief Represents an action in the SLR(1) parsing table.
+     *
+     * This struct associates an LR(0) item with an action to be taken by the
+     * parser. It is used to store entries in the action table.
+     *
+     * @var item The LR(0) item associated with the action if it is a reduce
+     * action.
+     * @var action The type of action to be taken (Shift, Reduce, Accept, or
+     * Empty).
+     */
     struct s_action {
         const Lr0Item* item;
         Action         action;
     };
+
+    /**
+     * @brief Represents the action table for the SLR(1) parser.
+     *
+     * The action table is a map that associates each state and input symbol
+     * with a specific action (`Shift`, `Reduce`, `Accept`, or `Empty`). It is
+     * used to determine the parser's behavior during the parsing process.
+     *
+     * The table is structured as:
+     * - Outer map: Keys are state IDs (unsigned int).
+     * - Inner map: Keys are input symbols (std::string), and values are
+     * `s_action` structs representing the action to take.
+     */
     using action_table =
         std::map<unsigned int, std::map<std::string, SLR1Parser::s_action>>;
+
+    /**
+     * @brief Represents the transition table for the SLR(1) parser.
+     *
+     * The transition table is a map that associates each state and symbol with
+     * the next state to transition to. It is used to guide the parser's state
+     * transitions during the parsing process.
+     *
+     * The table is structured as:
+     * - Outer map: Keys are state IDs (unsigned int).
+     * - Inner map: Keys are symbols (std::string), and values are the next
+     * state IDs (unsigned int).
+     */
     using transition_table =
         std::map<unsigned int, std::map<std::string, unsigned int>>;
     SLR1Parser(Grammar gr);
-    std::unordered_set<Lr0Item> allItems() const;
-    void                        DebugStates() const;
-    void                        DebugActions();
-    void                        Closure(std::unordered_set<Lr0Item>& items);
+
+    /**
+     * @brief Retrieves all LR(0) items in the grammar.
+     *
+     * This function returns a set of all LR(0) items derived from the grammar's
+     * productions. Each LR(0) item represents a production with a marker
+     * indicating the current position in the production (e.g., A → α•β).
+     *
+     * @return A set of all LR(0) items in the grammar.
+     */
+    std::unordered_set<Lr0Item> AllItems() const;
+
+    /**
+     * @brief Prints debug information about the parser's states.
+     *
+     * This function outputs detailed information about the states in the
+     * parser's state machine, including the LR(0) items in each state. It is
+     * used for debugging and verifying the correctness of the state machine.
+     */
+    void DebugStates() const;
+
+    /**
+     * @brief Prints debug information about the parser's action table.
+     *
+     * This function outputs detailed information about the action table,
+     * including shift, reduce, and accept actions for each state and input
+     * symbol. It is used for debugging and verifying the correctness of the
+     * parsing table.
+     */
+    void DebugActions();
+
+    /**
+     * @brief Computes the closure of a set of LR(0) items.
+     *
+     * This function computes the closure of a given set of LR(0) items by
+     * adding all items that can be derived from the current items using the
+     * grammar's productions. The closure operation ensures that all possible
+     * derivations are considered when constructing the parser's states.
+     *
+     * @param items The set of LR(0) items for which to compute the closure.
+     */
+    void Closure(std::unordered_set<Lr0Item>& items);
+
+    /**
+     * @brief Helper function for computing the closure of LR(0) items.
+     *
+     * This function recursively computes the closure of a set of LR(0) items by
+     * adding items derived from non-terminal symbols. It avoids redundant work
+     * by tracking visited non-terminals and stopping when no new items are
+     * added.
+     *
+     * @param items The set of LR(0) items being processed.
+     * @param size The size of the items set at the start of the current
+     * iteration.
+     * @param visited A set of non-terminals that have already been processed.
+     */
     void ClosureUtil(std::unordered_set<Lr0Item>& items, unsigned int size,
                      std::unordered_set<std::string>& visited);
+
+    /**
+     * @brief Resolves LR conflicts in a given state.
+     *
+     * This function attempts to resolve shift/reduce or reduce/reduce conflicts
+     * in a given state using SLR(1) parsing rules. It checks the FOLLOW sets of
+     * non-terminals to determine the correct action and updates the action
+     * table accordingly.
+     *
+     * @param st The state in which to resolve conflicts.
+     * @return `true` if all conflicts are resolved, `false` if an unresolvable
+     *         conflict is detected.
+     */
     bool SolveLRConflicts(const state& st);
 
     /**
@@ -113,41 +227,59 @@ class SLR1Parser {
      * FOLLOW set for `arg`.
      */
     std::unordered_set<std::string> Follow(const std::string& arg);
-    /**
-     * @brief Recursive utility function to compute the FOLLOW set for a
-     * non-terminal.
-     *
-     * This function assists in building the FOLLOW set by handling recursive
-     * dependencies among non-terminals, ensuring that cycles are properly
-     * managed to avoid infinite recursion. The helper function performs
-     * depth-first traversal through the production rules to collect symbols
-     * that should belong to the FOLLOW set of the target non-terminal.
-     *
-     * - If a non-terminal appears in a production, `follow_util` gathers
-     * symbols immediately following it in that production.
-     * - If no symbols follow the target non-terminal or if the remaining
-     * symbols can derive epsilon, it incorporates symbols from the FOLLOW set
-     * of the non-terminal on the left-hand side of the production rule.
-     *
-     * @param arg The non-terminal symbol whose FOLLOW set is being computed.
-     * @param visited An unordered set of strings used to track symbols already
-     * visited in the current recursion path, preventing infinite loops.
-     * @param next_symbols An unordered set to accumulate symbols forming the
-     * FOLLOW set of the target non-terminal as they are discovered.
-     */
-    void FollowUtil(const std::string&               arg,
-                    std::unordered_set<std::string>& visited,
-                    std::unordered_set<std::string>& next_symbols);
 
+    /**
+     * @brief Creates the initial state of the parser's state machine.
+     *
+     * This function initializes the starting state of the parser by computing
+     * the closure of the initial set of LR(0) items derived from the grammar's
+     * start symbol. The initial state is added to the `states_` set, and its
+     * transitions are prepared for further processing in the parser
+     * construction.
+     *
+     * @see states_
+     * @see transitions_
+     */
     void MakeInitialState();
+
+    /**
+     * @brief Constructs the SLR(1) parsing tables (action and transition
+     * tables).
+     *
+     * This function builds the SLR(1) parsing tables by computing the canonical
+     * collection of LR(0) items, generating the action and transition tables,
+     * and resolving conflicts (if any). It returns `true` if the grammar is
+     * SLR(1) and the tables are successfully constructed, or `false` if a
+     * conflict is detected that cannot be resolved.
+     *
+     * @return `true` if the parsing tables are successfully constructed,
+     * `false` if the grammar is not SLR(1) or a conflict is encountered.
+     *
+     * @see actions_
+     * @see transitions_
+     * @see states_
+     */
     bool MakeParser();
 
+    /// @brief The grammar being processed by the parser.
     Grammar gr_;
+
+    /// @brief Cached FIRST sets for all symbols in the grammar.
     std::unordered_map<std::string, std::unordered_set<std::string>>
         first_sets_;
+
+    /// @brief Cached FOLLOW sets for all non-terminal symbols in the grammar.
     std::unordered_map<std::string, std::unordered_set<std::string>>
-                              follow_sets_;
-    action_table              actions_;
-    transition_table          transitions_;
+        follow_sets_;
+
+    /// @brief The action table used by the parser to determine shift/reduce
+    /// actions.
+    action_table actions_;
+
+    /// @brief The transition table used by the parser to determine state
+    /// transitions.
+    transition_table transitions_;
+
+    /// @brief The set of states in the parser's state machine.
     std::unordered_set<state> states_;
 };

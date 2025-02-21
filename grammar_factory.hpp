@@ -28,7 +28,7 @@ struct GrammarFactory {
         /**
          * @brief Symbol table associated with this grammar item.
          */
-        symbol_table st_;
+        SymbolTable st_;
 
         /**
          * @brief Constructor that initializes a FactoryItem with the provided
@@ -107,11 +107,62 @@ struct GrammarFactory {
      */
     Grammar Lv3();
 
+    /**
+     * @brief Generates a Level 4 grammar by combining Level 3 and Level 1
+     * items.
+     *
+     * This function creates a more complex grammar by combining elements from
+     * Level 3 and Level 1 grammars. It is used to generate grammars with
+     * increased complexity for testing or parsing purposes.
+     *
+     * @return A Level 4 grammar.
+     */
     Grammar Lv4();
+
+    /**
+     * @brief Generates a Level 5 grammar by combining Level 4 and Level 1
+     * items.
+     *
+     * This function creates a more advanced grammar by combining elements from
+     * Level 4 and Level 1 grammars. It is used to generate grammars with
+     * higher complexity for testing or parsing purposes.
+     *
+     * @return A Level 5 grammar.
+     */
     Grammar Lv5();
+
+    /**
+     * @brief Generates a Level 6 grammar by combining Level 5 and Level 1
+     * items.
+     *
+     * This function creates a highly complex grammar by combining elements from
+     * Level 5 and Level 1 grammars. It is used to generate grammars with
+     * advanced structures for testing or parsing purposes.
+     *
+     * @return A Level 6 grammar.
+     */
     Grammar Lv6();
+
+    /**
+     * @brief Generates a Level 7 grammar by combining Level 6 and Level 1
+     * items.
+     *
+     * This function creates a very complex grammar by combining elements from
+     * Level 6 and Level 1 grammars. It is used to generate grammars with
+     * highly advanced structures for testing or parsing purposes.
+     *
+     * @return A Level 7 grammar.
+     */
     Grammar Lv7();
 
+    /**
+     * @brief Creates a Level 2 grammar item for use in grammar generation.
+     *
+     * This function generates a Level 2 grammar item, which can be used as a
+     * building block for creating more complex grammars.
+     *
+     * @return A FactoryItem representing a Level 2 grammar.
+     */
     FactoryItem CreateLv2Item();
 
     // -------- SANITY CHECKS --------
@@ -181,12 +232,48 @@ struct GrammarFactory {
      */
     void LeftFactorize(Grammar& grammar);
 
+    /**
+     * @brief Finds the longest common prefix among a set of productions.
+     *
+     * This function computes the longest sequence of symbols that is common to
+     * the beginning of all productions in the given vector. It is used during
+     * left factorization to identify common prefixes that can be factored out.
+     *
+     * @param productions A vector of productions to analyze.
+     * @return A vector of strings representing the longest common prefix. If no
+     *         common prefix exists, an empty vector is returned.
+     */
     std::vector<std::string>
     LongestCommonPrefix(const std::vector<production>& productions);
 
+    /**
+     * @brief Checks if a production starts with a given prefix.
+     *
+     * This function determines whether the symbols in a production match the
+     * provided prefix sequence at the beginning. It is used during left
+     * factorization to identify productions that share a common prefix.
+     *
+     * @param prod The production to check.
+     * @param prefix The sequence of symbols to compare against the beginning of
+     *               the production.
+     * @return `true` if the production starts with the prefix, `false`
+     * otherwise.
+     */
     bool StartsWith(const production&               prod,
                     const std::vector<std::string>& prefix);
 
+    /**
+     * @brief Generates a new non-terminal symbol that is unique in the grammar.
+     *
+     * This function creates a new non-terminal symbol by appending a prime
+     * symbol (') to the base name until the resulting symbol is not already
+     * present in the grammar's symbol table. It is used during left
+     * factorization to introduce new non-terminals for factored productions.
+     *
+     * @param grammar The grammar in which the new non-terminal will be added.
+     * @param base The base name for the new non-terminal.
+     * @return A unique non-terminal symbol derived from the base name.
+     */
     std::string GenerateNewNonTerminal(Grammar&           grammar,
                                        const std::string& base);
     /**

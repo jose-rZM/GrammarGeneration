@@ -14,7 +14,7 @@
 
 SLR1Parser::SLR1Parser(Grammar gr) : gr_(std::move(gr)) {}
 
-std::unordered_set<Lr0Item> SLR1Parser::allItems() const {
+std::unordered_set<Lr0Item> SLR1Parser::AllItems() const {
     std::unordered_set<Lr0Item> items;
     for (const auto& rule : gr_.g_) {
         for (const auto& production : rule.second) {

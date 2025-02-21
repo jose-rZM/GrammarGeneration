@@ -2,7 +2,7 @@
 #include <unordered_map>
 #include <vector>
 
-void symbol_table::PutSymbol(const std::string& identifier, bool isTerminal) {
+void SymbolTable::PutSymbol(const std::string& identifier, bool isTerminal) {
     if (isTerminal) {
         st_.insert({identifier, TERMINAL});
         terminals_.insert(identifier);
@@ -14,14 +14,14 @@ void symbol_table::PutSymbol(const std::string& identifier, bool isTerminal) {
     }
 }
 
-bool symbol_table::In(const std::string& s) {
+bool SymbolTable::In(const std::string& s) {
     return st_.find(s) != st_.cend();
 }
 
-bool symbol_table::IsTerminal(const std::string& s) {
+bool SymbolTable::IsTerminal(const std::string& s) {
     return terminals_.find(s) != terminals_.end();
 }
 
-bool symbol_table::IsTerminalWthoEol(const std::string& s) {
+bool SymbolTable::IsTerminalWthoEol(const std::string& s) {
     return s != EPSILON_ && terminals_.find(s) != terminals_.end();
 }
