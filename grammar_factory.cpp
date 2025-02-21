@@ -754,7 +754,7 @@ void GrammarFactory::RemoveLeftRecursion(Grammar& grammar) {
     for (const auto& [nt, productions] : grammar.g_) {
         std::vector<production> alpha;
         std::vector<production> beta;
-        std::string             new_non_terminal = nt + "'";
+        std::string             new_non_terminal = GenerateNewNonTerminal(grammar, nt);
         for (const auto& prod : productions) {
             if (!prod.empty() && prod[0] == nt) {
                 alpha.push_back({prod.begin() + 1, prod.end()});
@@ -803,54 +803,93 @@ void GrammarFactory::RemoveUnitRules(Grammar& grammar) {
 }
 
 void GrammarFactory::LeftFactorize(Grammar& grammar) {
-    std::unordered_map<std::string, std::vector<production>> new_rules;
+    bool changed;
+    do {
+        changed = false;
+        std::unordered_map<std::string, std::vector<production>> new_rules;
 
-    for (const auto& [nt, productions] : grammar.g_) {
-        if (productions.size() < 2) {
-            new_rules[nt] = productions;
-            continue;
-        }
+        for (const auto& [nt, productions] : grammar.g_) {
+            std::vector<production> factored_productions;
+            std::vector<production> remaining_productions = productions;
 
-        std::vector<production> sorted_prods = productions;
-        std::sort(sorted_prods.begin(), sorted_prods.end());
+            while (!remaining_productions.empty()) {
+                std::vector<std::string> common_prefix = LongestCommonPrefix(remaining_productions);
 
-        std::vector<production>  new_productions;
-        std::vector<production>  pending_group;
-        std::vector<std::string> common_prefix;
+                if (common_prefix.empty()) {
+                    factored_productions.push_back(remaining_productions[0]);
+                    remaining_productions.erase(remaining_productions.begin());
+                } else {
+                    std::string new_non_terminal = GenerateNewNonTerminal(grammar, nt);
+                    grammar.st_.PutSymbol(new_non_terminal, false);
 
-        for (size_t i = 0; i < sorted_prods.size(); ++i) {
-            if (i > 0) {
-                auto mismatch = std::mismatch(
-                    sorted_prods[i - 1].begin(), sorted_prods[i - 1].end(),
-                    sorted_prods[i].begin(), sorted_prods[i].end());
-                size_t prefix_len =
-                    std::distance(sorted_prods[i - 1].begin(), mismatch.first);
+                    std::vector<std::string> new_production = common_prefix;
+                    new_production.push_back(new_non_terminal);
+                    factored_productions.push_back(new_production);
 
-                if (prefix_len == 0) {
-                    if (!pending_group.empty()) {
-                        std::string new_nt = grammar.GenerateNewNonTerminal(nt);
-                        new_productions.push_back(common_prefix);
-                        new_productions.back().push_back(new_nt);
-                        new_rules[new_nt] = pending_group;
+                    std::vector<production> new_remaining_productions;
+                    for (const auto& prod : remaining_productions) {
+                        if (StartsWith(prod, common_prefix)) {
+                            std::vector<std::string> remaining_part(prod.begin() + common_prefix.size(), prod.end());
+                            if (remaining_part.empty()) {
+                                remaining_part.push_back(grammar.st_.EPSILON_);
+                            }
+                            new_remaining_productions.push_back(remaining_part);
+                        } else {
+                            factored_productions.push_back(prod);
+                        }
                     }
-                    pending_group.clear();
-                    common_prefix.clear();
+
+                    new_rules[new_non_terminal] = new_remaining_productions;
+                    changed = true;
+                    break;
                 }
             }
-            if (common_prefix.empty()) {
-                common_prefix = sorted_prods[i];
-            }
-            pending_group.push_back(sorted_prods[i]);
+
+            new_rules[nt] = factored_productions;
         }
-        if (!pending_group.empty()) {
-            std::string new_nt = grammar.GenerateNewNonTerminal(nt);
-            new_productions.push_back(common_prefix);
-            new_productions.back().push_back(new_nt);
-            new_rules[new_nt] = pending_group;
+
+        grammar.g_ = std::move(new_rules);
+    } while (changed);
+}
+
+std::vector<std::string> GrammarFactory::LongestCommonPrefix(
+    const std::vector<production>& productions) {
+        if (productions.empty() || productions.size() < 2) {
+            return {};
         }
-        new_rules[nt] = new_productions;
+
+        std::vector<production> sorted = productions;
+        std::sort(sorted.begin(), sorted.end());
+        production& first = sorted.front();
+        production& last = sorted.back();
+        size_t min_length = std::min(first.size(), last.size());
+
+        size_t i = 0;
+        while (i < min_length && first[i] == last[i]) {
+            ++i;
+        }
+        return std::vector<std::string>(first.begin(), first.begin() + i); 
+}
+
+bool GrammarFactory::StartsWith(const production&               prod,
+                                const std::vector<std::string>& prefix) {
+    if (prod.size() < prefix.size()) {
+        return false;
     }
-    grammar.g_ = std::move(new_rules);
+    size_t i = 0;
+    while (i < prefix.size() && prod[i] == prefix[i]) {
+        ++i;
+    }
+    return i == prefix.size();
+}
+
+std::string GrammarFactory::GenerateNewNonTerminal(Grammar&           grammar,
+                                                   const std::string& base) {
+    std::string nt = base;
+    while (grammar.st_.non_terminals_.find(nt) != grammar.st_.non_terminals_.end()) {
+        nt += "'";
+    }
+    return nt;
 }
 
 GrammarFactory::FactoryItem::FactoryItem(

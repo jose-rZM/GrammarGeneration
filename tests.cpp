@@ -174,6 +174,32 @@ TEST(GrammarTest, RemoveDirectLeftRecursion_WhenThereIsNoLeftRecursion) {
     EXPECT_EQ(original.g_, g.g_);
 }
 
+TEST(GrammarTest, LeftFactorize) {
+    Grammar g;
+    GrammarFactory factory;
+
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+    g.st_.PutSymbol("c", true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"A", g.st_.EOL_});
+    g.AddProduction("A", {"a", "b", "B"});
+    g.AddProduction("A", {"a", "b"});
+
+    factory.LeftFactorize(g);
+    g.Debug();
+
+    EXPECT_EQ(g.g_.size(), 3); // S, A, X
+    EXPECT_EQ(g.g_["S"].size(), 1);
+    EXPECT_EQ(g.g_["A"].size(), 1);
+    EXPECT_EQ(g.g_["A'"].size(), 2);
+}
+
 TEST(LL1__Test, FirstSet) {
     Grammar g;
 
