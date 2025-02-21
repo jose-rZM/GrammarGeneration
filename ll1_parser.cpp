@@ -183,7 +183,7 @@ void LL1Parser::PrintTable() {
     using namespace tabulate;
     Table table;
 
-    Table::Row_t                          headers = {"Non-terminal"};
+    Table::Row_t headers = {"Non-terminal"};
     std::unordered_map<std::string, bool> columns;
 
     for (const auto& outerPair : ll1_t_) {
@@ -202,13 +202,24 @@ void LL1Parser::PrintTable() {
         .font_color(Color::yellow)
         .font_style({FontStyle::bold});
 
+
+    std::vector<std::string> non_terminals;
     for (const auto& outerPair : ll1_t_) {
-        const std::string& nonTerminal = outerPair.first;
-        Table::Row_t       row_data    = {nonTerminal};
+        non_terminals.push_back(outerPair.first);
+    }
+
+    std::sort(non_terminals.begin(), non_terminals.end(), [this](const std::string& a, const std::string& b) {
+        if (a == gr_.axiom_) return true; // Axiom comes first
+        if (b == gr_.axiom_) return false; // Axiom comes first
+        return a < b; // Sort the rest alphabetically
+    });
+
+    for (const std::string& nonTerminal : non_terminals) {
+        Table::Row_t row_data = {nonTerminal};
 
         for (const auto& col : columns) {
-            auto innerIt = outerPair.second.find(col.first);
-            if (innerIt != outerPair.second.end()) {
+            auto innerIt = ll1_t_.at(nonTerminal).find(col.first);
+            if (innerIt != ll1_t_.at(nonTerminal).end()) {
                 std::string cell_content;
                 for (const auto& prod : innerIt->second) {
                     cell_content += "[ ";
@@ -222,6 +233,7 @@ void LL1Parser::PrintTable() {
                 row_data.push_back("-");
             }
         }
+
         table.add_row(row_data);
     }
 
@@ -235,5 +247,7 @@ void LL1Parser::PrintTable() {
     }
     table.format().font_align(FontAlign::center);
     table.column(0).format().font_color(Color::cyan);
+
+    // Print the table
     std::cout << table << std::endl;
 }

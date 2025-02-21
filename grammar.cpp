@@ -55,9 +55,28 @@ Grammar::FilterRulesByConsequent(const std::string& arg) {
 
 void Grammar::Debug() {
     std::cout << "Grammar:\n";
+
+    std::cout << axiom_ << " -> ";
+    for (const std::vector<std::string>& prod : g_[axiom_]) {
+        for (const std::string& symbol : prod) {
+            std::cout << symbol << " ";
+        }
+        std::cout << "| ";
+    }
+    std::cout << "\n";
+
+    std::vector<std::string> non_terminals;
     for (const auto& entry : g_) {
-        std::cout << entry.first << " -> ";
-        for (const std::vector<std::string>& prod : entry.second) {
+        if (entry.first != axiom_) {
+            non_terminals.push_back(entry.first);
+        }
+    }
+
+    std::sort(non_terminals.begin(), non_terminals.end());
+
+    for (const std::string& nt : non_terminals) {
+        std::cout << nt << " -> ";
+        for (const std::vector<std::string>& prod : g_[nt]) {
             for (const std::string& symbol : prod) {
                 std::cout << symbol << " ";
             }
@@ -66,6 +85,7 @@ void Grammar::Debug() {
         std::cout << "\n";
     }
 }
+
 bool Grammar::HasLeftRecursion(const std::string&              antecedent,
                                const std::vector<std::string>& consequent) {
     return consequent.at(0) == antecedent;
