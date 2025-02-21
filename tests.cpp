@@ -2,6 +2,13 @@
 #include "grammar_factory.hpp"
 #include "ll1_parser.hpp"
 #include <gtest/gtest.h>
+#include <algorithm>
+
+void SortProductions(Grammar& grammar) {
+    for (auto& [nt, productions] : grammar.g_) {
+        std::sort(productions.begin(), productions.end());
+    }
+}
 
 TEST(GrammarTest, IsInfinite_WhenGrammarIsInfinite) {
     Grammar        g;
@@ -174,7 +181,202 @@ TEST(GrammarTest, RemoveDirectLeftRecursion_WhenThereIsNoLeftRecursion) {
     EXPECT_EQ(original.g_, g.g_);
 }
 
-TEST(GrammarTest, LeftFactorize) {
+TEST(GrammarTest, LeftFactorize_Basic) {
+    Grammar g;
+    GrammarFactory factory;
+
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+    g.st_.PutSymbol("c", true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"A", g.st_.EOL_});
+    g.AddProduction("A", {"a", "b", "B"});
+    g.AddProduction("A", {"a", "b", "c"});
+
+    factory.LeftFactorize(g);
+
+    Grammar g_factorized;
+
+    g_factorized.st_.PutSymbol("S", false);
+    g_factorized.st_.PutSymbol("A", false);
+    g_factorized.st_.PutSymbol("A'", false);
+    g_factorized.st_.PutSymbol("a", true);
+    g_factorized.st_.PutSymbol("b", true);
+    g_factorized.st_.PutSymbol("c", true);
+
+    g_factorized.axiom_ = "S";
+
+    g_factorized.AddProduction("S", {"A", g.st_.EOL_});
+    g_factorized.AddProduction("A", {"a", "b", "A'"});
+    g_factorized.AddProduction("A'", {"c"});
+    g_factorized.AddProduction("A'", {"B"});
+
+    SortProductions(g);
+    SortProductions(g_factorized);
+
+    EXPECT_EQ(g.g_.size(), 3);
+    EXPECT_EQ(g.g_["S"].size(), 1);
+    EXPECT_EQ(g.g_["A"].size(), 1);
+    EXPECT_EQ(g.g_["A'"].size(), 2);
+    EXPECT_EQ(g.g_, g_factorized.g_);
+}
+
+TEST(GrammarTest, LeftFactorize_MultipleCommonPrefixes) {
+    Grammar g;
+    GrammarFactory factory;
+
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+    g.st_.PutSymbol("c", true);
+    g.st_.PutSymbol("d", true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"A", g.st_.EOL_});
+    g.AddProduction("A", {"a", "b", "B"});
+    g.AddProduction("A", {"a", "b", "c"});
+    g.AddProduction("A", {"a", "b", "d"});
+
+    factory.LeftFactorize(g);
+
+    // Expected grammar after left factorization:
+    // S -> A EOL
+    // A -> a b A'
+    // A' -> B
+    // A' -> c
+    // A' -> d
+
+    Grammar g_factorized;
+
+    g_factorized.st_.PutSymbol("S", false);
+    g_factorized.st_.PutSymbol("A", false);
+    g_factorized.st_.PutSymbol("A'", false);
+    g_factorized.st_.PutSymbol("a", true);
+    g_factorized.st_.PutSymbol("b", true);
+    g_factorized.st_.PutSymbol("c", true);
+    g_factorized.st_.PutSymbol("d", true);
+
+    g_factorized.axiom_ = "S";
+
+    g_factorized.AddProduction("S", {"A", g.st_.EOL_});
+    g_factorized.AddProduction("A", {"a", "b", "A'"});
+    g_factorized.AddProduction("A'", {"B"});
+    g_factorized.AddProduction("A'", {"c"});
+    g_factorized.AddProduction("A'", {"d"});
+
+    SortProductions(g);
+    SortProductions(g_factorized);
+
+    EXPECT_EQ(g.g_.size(), 3);
+    EXPECT_EQ(g.g_["S"].size(), 1);
+    EXPECT_EQ(g.g_["A"].size(), 1);
+    EXPECT_EQ(g.g_["A'"].size(), 3);
+    EXPECT_EQ(g.g_, g_factorized.g_);
+}
+
+TEST(GrammarTest, LeftFactorize_WithEpsilon) {
+    Grammar g;
+    GrammarFactory factory;
+
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"A", g.st_.EOL_});
+    g.AddProduction("A", {"a", "b", "B"});
+    g.AddProduction("A", {"a", "b", g.st_.EPSILON_});
+
+    factory.LeftFactorize(g);
+
+    // Expected grammar after left factorization:
+    // S -> A EOL
+    // A -> a b A'
+    // A' -> B
+    // A' -> ε
+
+    Grammar g_factorized;
+
+    g_factorized.st_.PutSymbol("S", false);
+    g_factorized.st_.PutSymbol("A", false);
+    g_factorized.st_.PutSymbol("A'", false);
+    g_factorized.st_.PutSymbol("a", true);
+    g_factorized.st_.PutSymbol("b", true);
+    g_factorized.st_.PutSymbol(g.st_.EPSILON_, true);
+
+    g_factorized.axiom_ = "S";
+
+    g_factorized.AddProduction("S", {"A", g.st_.EOL_});
+    g_factorized.AddProduction("A", {"a", "b", "A'"});
+    g_factorized.AddProduction("A'", {"B"});
+    g_factorized.AddProduction("A'", {g.st_.EPSILON_});
+
+    SortProductions(g);
+    SortProductions(g_factorized);
+
+    EXPECT_EQ(g.g_.size(), 3);
+    EXPECT_EQ(g.g_["S"].size(), 1);
+    EXPECT_EQ(g.g_["A"].size(), 1);
+    EXPECT_EQ(g.g_["A'"].size(), 2);
+    EXPECT_EQ(g.g_, g_factorized.g_);
+}
+
+TEST(GrammarTest, LeftFactorize_NoCommonPrefix) {
+    Grammar g;
+    GrammarFactory factory;
+
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+    g.st_.PutSymbol("c", true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"A", g.st_.EOL_});
+    g.AddProduction("A", {"a", "b"});
+    g.AddProduction("A", {"c"});
+
+    factory.LeftFactorize(g);
+
+    // Expected grammar (no changes):
+    // S -> A EOL
+    // A -> a b
+    // A -> c
+
+    Grammar g_factorized;
+
+    g_factorized.st_.PutSymbol("S", false);
+    g_factorized.st_.PutSymbol("A", false);
+    g_factorized.st_.PutSymbol("a", true);
+    g_factorized.st_.PutSymbol("b", true);
+    g_factorized.st_.PutSymbol("c", true);
+
+    g_factorized.axiom_ = "S";
+
+    g_factorized.AddProduction("S", {"A", g.st_.EOL_});
+    g_factorized.AddProduction("A", {"a", "b"});
+    g_factorized.AddProduction("A", {"c"});
+
+    SortProductions(g);
+    SortProductions(g_factorized);
+
+    EXPECT_EQ(g.g_.size(), 2);
+    EXPECT_EQ(g.g_["S"].size(), 1);
+    EXPECT_EQ(g.g_["A"].size(), 2);
+    EXPECT_EQ(g.g_, g_factorized.g_);
+}
+
+TEST(GrammarTest, LeftFactorize_MultipleCommonPrefixes2) {
     Grammar g;
     GrammarFactory factory;
 
@@ -184,20 +386,157 @@ TEST(GrammarTest, LeftFactorize) {
     g.st_.PutSymbol("a", true);
     g.st_.PutSymbol("b", true);
     g.st_.PutSymbol("c", true);
+    g.st_.PutSymbol("d", true);
 
     g.axiom_ = "S";
 
     g.AddProduction("S", {"A", g.st_.EOL_});
     g.AddProduction("A", {"a", "b", "B"});
-    g.AddProduction("A", {"a", "b"});
+    g.AddProduction("A", {"a", "b", "c"});
+    g.AddProduction("A", {"a", "b", "d"});
 
     factory.LeftFactorize(g);
-    g.Debug();
 
-    EXPECT_EQ(g.g_.size(), 3); // S, A, X
+    // Expected grammar after left factorization:
+    // S -> A EOL
+    // A -> a b A'
+    // A' -> B
+    // A' -> c
+    // A' -> d
+
+    Grammar g_factorized;
+
+    g_factorized.st_.PutSymbol("S", false);
+    g_factorized.st_.PutSymbol("A", false);
+    g_factorized.st_.PutSymbol("A'", false);
+    g_factorized.st_.PutSymbol("a", true);
+    g_factorized.st_.PutSymbol("b", true);
+    g_factorized.st_.PutSymbol("c", true);
+    g_factorized.st_.PutSymbol("d", true);
+
+    g_factorized.axiom_ = "S";
+
+    g_factorized.AddProduction("S", {"A", g.st_.EOL_});
+    g_factorized.AddProduction("A", {"a", "b", "A'"});
+    g_factorized.AddProduction("A'", {"B"});
+    g_factorized.AddProduction("A'", {"c"});
+    g_factorized.AddProduction("A'", {"d"});
+
+    SortProductions(g);
+    SortProductions(g_factorized);
+
+    EXPECT_EQ(g.g_.size(), 3);
     EXPECT_EQ(g.g_["S"].size(), 1);
     EXPECT_EQ(g.g_["A"].size(), 1);
-    EXPECT_EQ(g.g_["A'"].size(), 2);
+    EXPECT_EQ(g.g_["A'"].size(), 3);
+    EXPECT_EQ(g.g_, g_factorized.g_);
+}
+
+TEST(GrammarTest, LeftFactorize_NestedCommonPrefixes) {
+    Grammar g;
+    GrammarFactory factory;
+
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+    g.st_.PutSymbol("c", true);
+    g.st_.PutSymbol("d", true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"A", g.st_.EOL_});
+    g.AddProduction("A", {"a", "b", "B"});
+    g.AddProduction("A", {"a", "b", "c"});
+    g.AddProduction("A", {"a", "b", "d"});
+    g.AddProduction("B", {"a", "b", "c"});
+    g.AddProduction("B", {"a", "b", "d"});
+
+    factory.LeftFactorize(g);
+
+    // Expected grammar after left factorization:
+    // S -> A EOL
+    // A -> a b A'
+    // A' -> B
+    // A' -> c
+    // A' -> d
+    // B -> a b B'
+    // B' -> c
+    // B' -> d
+
+    Grammar g_factorized;
+
+    g_factorized.st_.PutSymbol("S", false);
+    g_factorized.st_.PutSymbol("A", false);
+    g_factorized.st_.PutSymbol("A'", false);
+    g_factorized.st_.PutSymbol("B", false);
+    g_factorized.st_.PutSymbol("B'", false);
+    g_factorized.st_.PutSymbol("a", true);
+    g_factorized.st_.PutSymbol("b", true);
+    g_factorized.st_.PutSymbol("c", true);
+    g_factorized.st_.PutSymbol("d", true);
+
+    g_factorized.axiom_ = "S";
+
+    g_factorized.AddProduction("S", {"A", g.st_.EOL_});
+    g_factorized.AddProduction("A", {"a", "b", "A'"});
+    g_factorized.AddProduction("A'", {"B"});
+    g_factorized.AddProduction("A'", {"c"});
+    g_factorized.AddProduction("A'", {"d"});
+    g_factorized.AddProduction("B", {"a", "b", "B'"});
+    g_factorized.AddProduction("B'", {"c"});
+    g_factorized.AddProduction("B'", {"d"});
+
+    SortProductions(g);
+    SortProductions(g_factorized);
+
+    EXPECT_EQ(g.g_.size(), 5);
+    EXPECT_EQ(g.g_["S"].size(), 1);
+    EXPECT_EQ(g.g_["A"].size(), 1);
+    EXPECT_EQ(g.g_["A'"].size(), 3);
+    EXPECT_EQ(g.g_["B"].size(), 1);
+    EXPECT_EQ(g.g_["B'"].size(), 2);
+    EXPECT_EQ(g.g_, g_factorized.g_);
+}
+
+TEST(GrammarTest, LeftFactorize_SingleProduction) {
+    Grammar g;
+    GrammarFactory factory;
+
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("a", true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"A", g.st_.EOL_});
+    g.AddProduction("A", {"a"});
+
+    factory.LeftFactorize(g);
+
+    // Expected grammar (no changes):
+    // S -> A EOL
+    // A -> a
+
+    Grammar g_factorized;
+
+    g_factorized.st_.PutSymbol("S", false);
+    g_factorized.st_.PutSymbol("A", false);
+    g_factorized.st_.PutSymbol("a", true);
+
+    g_factorized.axiom_ = "S";
+
+    g_factorized.AddProduction("S", {"A", g.st_.EOL_});
+    g_factorized.AddProduction("A", {"a"});
+
+    SortProductions(g);
+    SortProductions(g_factorized);
+
+    EXPECT_EQ(g.g_.size(), 2);
+    EXPECT_EQ(g.g_["S"].size(), 1);
+    EXPECT_EQ(g.g_["A"].size(), 1);
+    EXPECT_EQ(g.g_, g_factorized.g_);
 }
 
 TEST(LL1__Test, FirstSet) {
