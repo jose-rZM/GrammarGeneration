@@ -57,11 +57,14 @@ void Grammar::Debug() {
     std::cout << "Grammar:\n";
 
     std::cout << axiom_ << " -> ";
-    for (const std::vector<std::string>& prod : g_[axiom_]) {
-        for (const std::string& symbol : prod) {
+    const auto& axiom_productions = g_.at(axiom_);
+    for (size_t i = 0; i < axiom_productions.size(); ++i) {
+        for (const std::string& symbol : axiom_productions[i]) {
             std::cout << symbol << " ";
         }
-        std::cout << "| ";
+        if (i < axiom_productions.size() - 1) {
+            std::cout << "| ";
+        }
     }
     std::cout << "\n";
 
@@ -76,11 +79,14 @@ void Grammar::Debug() {
 
     for (const std::string& nt : non_terminals) {
         std::cout << nt << " -> ";
-        for (const std::vector<std::string>& prod : g_[nt]) {
-            for (const std::string& symbol : prod) {
+        const auto& productions = g_.at(nt);
+        for (size_t i = 0; i < productions.size(); ++i) {
+            for (const std::string& symbol : productions[i]) {
                 std::cout << symbol << " ";
             }
-            std::cout << "| ";
+            if (i < productions.size() - 1) {
+                std::cout << "| ";
+            }
         }
         std::cout << "\n";
     }
