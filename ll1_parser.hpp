@@ -86,6 +86,8 @@ class LL1Parser {
      */
     void ComputeFirstSets();
 
+    void ComputeFollowSets();
+
     /**
      * @brief Computes the FOLLOW set for a given non-terminal symbol in the
      * grammar.
@@ -105,32 +107,6 @@ class LL1Parser {
      * FOLLOW set for `arg`.
      */
     std::unordered_set<std::string> Follow(const std::string& arg);
-
-    /**
-     * @brief Recursive utility function to compute the FOLLOW set for a
-     * non-terminal.
-     *
-     * This function assists in building the FOLLOW set by handling recursive
-     * dependencies among non-terminals, ensuring that cycles are properly
-     * managed to avoid infinite recursion. The helper function performs
-     * depth-first traversal through the production rules to collect symbols
-     * that should belong to the FOLLOW set of the target non-terminal.
-     *
-     * - If a non-terminal appears in a production, `follow_util` gathers
-     * symbols immediately following it in that production.
-     * - If no symbols follow the target non-terminal or if the remaining
-     * symbols can derive epsilon, it incorporates symbols from the FOLLOW set
-     * of the non-terminal on the left-hand side of the production rule.
-     *
-     * @param arg The non-terminal symbol whose FOLLOW set is being computed.
-     * @param visited An unordered set of strings used to track symbols already
-     * visited in the current recursion path, preventing infinite loops.
-     * @param next_symbols An unordered set to accumulate symbols forming the
-     * FOLLOW set of the target non-terminal as they are discovered.
-     */
-    void FollowUtil(const std::string&               arg,
-                    std::unordered_set<std::string>& visited,
-                    std::unordered_set<std::string>& next_symbols);
 
     /**
      * @brief Computes the prediction symbols for a given
@@ -167,4 +143,8 @@ class LL1Parser {
 
     /// @brief FIRST sets for each non-terminal in the grammar.
     std::unordered_map<std::string, std::unordered_set<std::string>> first_sets;
+
+    /// @brief FOLLOW sets for each non-terminal in the grammar.
+    std::unordered_map<std::string, std::unordered_set<std::string>>
+        follow_sets_;
 };

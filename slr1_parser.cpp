@@ -396,8 +396,8 @@ std::unordered_set<std::string> SLR1Parser::Follow(const std::string& arg) {
 }
 
 void SLR1Parser::FollowUtil(const std::string&               arg,
-                           std::unordered_set<std::string>& visited,
-                           std::unordered_set<std::string>& next_symbols) {
+                            std::unordered_set<std::string>& visited,
+                            std::unordered_set<std::string>& next_symbols) {
     if (visited.find(arg) != visited.cend()) {
         return;
     }
