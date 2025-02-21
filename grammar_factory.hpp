@@ -181,11 +181,14 @@ struct GrammarFactory {
      */
     void LeftFactorize(Grammar& grammar);
 
-    std::vector<std::string> LongestCommonPrefix(const std::vector<production>& productions);
+    std::vector<std::string>
+    LongestCommonPrefix(const std::vector<production>& productions);
 
-    bool StartsWith(const production& prod, const std::vector<std::string>& prefix);
+    bool StartsWith(const production&               prod,
+                    const std::vector<std::string>& prefix);
 
-    std::string GenerateNewNonTerminal(Grammar& grammar, const std::string& base);
+    std::string GenerateNewNonTerminal(Grammar&           grammar,
+                                       const std::string& base);
     /**
      * @brief A vector of FactoryItem objects representing different level 1
      * grammar items created by the Init method.

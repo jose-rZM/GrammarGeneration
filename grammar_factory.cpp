@@ -759,7 +759,7 @@ void GrammarFactory::RemoveLeftRecursion(Grammar& grammar) {
     for (const auto& [nt, productions] : grammar.g_) {
         std::vector<production> alpha;
         std::vector<production> beta;
-        std::string             new_non_terminal = GenerateNewNonTerminal(grammar, nt);
+        std::string new_non_terminal = GenerateNewNonTerminal(grammar, nt);
         for (const auto& prod : productions) {
             if (!prod.empty() && prod[0] == nt) {
                 alpha.push_back({prod.begin() + 1, prod.end()});
@@ -818,13 +818,15 @@ void GrammarFactory::LeftFactorize(Grammar& grammar) {
             std::vector<production> remaining_productions = productions;
 
             while (!remaining_productions.empty()) {
-                std::vector<std::string> common_prefix = LongestCommonPrefix(remaining_productions);
+                std::vector<std::string> common_prefix =
+                    LongestCommonPrefix(remaining_productions);
 
                 if (common_prefix.empty()) {
                     factored_productions.push_back(remaining_productions[0]);
                     remaining_productions.erase(remaining_productions.begin());
                 } else {
-                    std::string new_non_terminal = GenerateNewNonTerminal(grammar, nt);
+                    std::string new_non_terminal =
+                        GenerateNewNonTerminal(grammar, nt);
                     grammar.st_.PutSymbol(new_non_terminal, false);
 
                     std::vector<std::string> new_production = common_prefix;
@@ -834,7 +836,9 @@ void GrammarFactory::LeftFactorize(Grammar& grammar) {
                     std::vector<production> new_remaining_productions;
                     for (const auto& prod : remaining_productions) {
                         if (StartsWith(prod, common_prefix)) {
-                            std::vector<std::string> remaining_part(prod.begin() + common_prefix.size(), prod.end());
+                            std::vector<std::string> remaining_part(
+                                prod.begin() + common_prefix.size(),
+                                prod.end());
                             if (remaining_part.empty()) {
                                 remaining_part.push_back(grammar.st_.EPSILON_);
                             }
@@ -845,7 +849,7 @@ void GrammarFactory::LeftFactorize(Grammar& grammar) {
                     }
 
                     new_rules[new_non_terminal] = new_remaining_productions;
-                    changed = true;
+                    changed                     = true;
                     break;
                 }
             }
@@ -859,21 +863,21 @@ void GrammarFactory::LeftFactorize(Grammar& grammar) {
 
 std::vector<std::string> GrammarFactory::LongestCommonPrefix(
     const std::vector<production>& productions) {
-        if (productions.empty() || productions.size() < 2) {
-            return {};
-        }
+    if (productions.empty() || productions.size() < 2) {
+        return {};
+    }
 
-        std::vector<production> sorted = productions;
-        std::sort(sorted.begin(), sorted.end());
-        production& first = sorted.front();
-        production& last = sorted.back();
-        size_t min_length = std::min(first.size(), last.size());
+    std::vector<production> sorted = productions;
+    std::sort(sorted.begin(), sorted.end());
+    production& first      = sorted.front();
+    production& last       = sorted.back();
+    size_t      min_length = std::min(first.size(), last.size());
 
-        size_t i = 0;
-        while (i < min_length && first[i] == last[i]) {
-            ++i;
-        }
-        return std::vector<std::string>(first.begin(), first.begin() + i); 
+    size_t i = 0;
+    while (i < min_length && first[i] == last[i]) {
+        ++i;
+    }
+    return std::vector<std::string>(first.begin(), first.begin() + i);
 }
 
 bool GrammarFactory::StartsWith(const production&               prod,
@@ -891,7 +895,8 @@ bool GrammarFactory::StartsWith(const production&               prod,
 std::string GrammarFactory::GenerateNewNonTerminal(Grammar&           grammar,
                                                    const std::string& base) {
     std::string nt = base;
-    while (grammar.st_.non_terminals_.find(nt) != grammar.st_.non_terminals_.end()) {
+    while (grammar.st_.non_terminals_.find(nt) !=
+           grammar.st_.non_terminals_.end()) {
         nt += "'";
     }
     return nt;

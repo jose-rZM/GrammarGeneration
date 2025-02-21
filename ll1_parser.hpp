@@ -86,6 +86,33 @@ class LL1Parser {
      */
     void ComputeFirstSets();
 
+    /**
+     * @brief Computes the FOLLOW sets for all non-terminal symbols in the
+     * grammar.
+     *
+     * The FOLLOW set of a non-terminal symbol A contains all terminal symbols
+     * that can appear immediately after A in any sentential form derived from
+     * the grammar's start symbol. Additionally, if A can be the last symbol in
+     * a derivation, the end-of-input marker (`$`) is included in its FOLLOW
+     * set.
+     *
+     * This function computes the FOLLOW sets using the following rules:
+     * 1. Initialize FOLLOW(S) = { $ }, where S is the start symbol.
+     * 2. For each production rule of the form A → αBβ:
+     *    - Add FIRST(β) (excluding ε) to FOLLOW(B).
+     *    - If ε ∈ FIRST(β), add FOLLOW(A) to FOLLOW(B).
+     * 3. Repeat step 2 until no changes occur in any FOLLOW set.
+     *
+     * The computed FOLLOW sets are cached in the `follow_sets_` member variable
+     * for later use by the parser.
+     *
+     * @note This function assumes that the FIRST sets for all symbols have
+     * already been computed and are available in the `first_sets_` member
+     * variable.
+     *
+     * @see First
+     * @see follow_sets_
+     */
     void ComputeFollowSets();
 
     /**
@@ -97,10 +124,6 @@ class LL1Parser {
      * as any end-of-input markers if the symbol can appear at the end of
      * derivations. FOLLOW sets are used in LL(1) parsing table construction to
      * determine possible continuations after a non-terminal.
-     *
-     * This function initiates the calculation and uses `follow_util` as a
-     * recursive helper to handle dependencies among non-terminals and avoid
-     * redundant computations.
      *
      * @param arg Non-terminal symbol for which to compute the FOLLOW set.
      * @return An unordered set of strings containing symbols that form the
@@ -142,7 +165,8 @@ class LL1Parser {
     Grammar gr_;
 
     /// @brief FIRST sets for each non-terminal in the grammar.
-    std::unordered_map<std::string, std::unordered_set<std::string>> first_sets;
+    std::unordered_map<std::string, std::unordered_set<std::string>>
+        first_sets_;
 
     /// @brief FOLLOW sets for each non-terminal in the grammar.
     std::unordered_map<std::string, std::unordered_set<std::string>>

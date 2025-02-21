@@ -1,8 +1,8 @@
 #include "grammar.hpp"
 #include "grammar_factory.hpp"
 #include "ll1_parser.hpp"
-#include <gtest/gtest.h>
 #include <algorithm>
+#include <gtest/gtest.h>
 
 void SortProductions(Grammar& grammar) {
     for (auto& [nt, productions] : grammar.g_) {
@@ -182,7 +182,7 @@ TEST(GrammarTest, RemoveDirectLeftRecursion_WhenThereIsNoLeftRecursion) {
 }
 
 TEST(GrammarTest, LeftFactorize_Basic) {
-    Grammar g;
+    Grammar        g;
     GrammarFactory factory;
 
     g.st_.PutSymbol("S", false);
@@ -226,7 +226,7 @@ TEST(GrammarTest, LeftFactorize_Basic) {
 }
 
 TEST(GrammarTest, LeftFactorize_MultipleCommonPrefixes) {
-    Grammar g;
+    Grammar        g;
     GrammarFactory factory;
 
     g.st_.PutSymbol("S", false);
@@ -281,7 +281,7 @@ TEST(GrammarTest, LeftFactorize_MultipleCommonPrefixes) {
 }
 
 TEST(GrammarTest, LeftFactorize_WithEpsilon) {
-    Grammar g;
+    Grammar        g;
     GrammarFactory factory;
 
     g.st_.PutSymbol("S", false);
@@ -331,7 +331,7 @@ TEST(GrammarTest, LeftFactorize_WithEpsilon) {
 }
 
 TEST(GrammarTest, LeftFactorize_NoCommonPrefix) {
-    Grammar g;
+    Grammar        g;
     GrammarFactory factory;
 
     g.st_.PutSymbol("S", false);
@@ -377,7 +377,7 @@ TEST(GrammarTest, LeftFactorize_NoCommonPrefix) {
 }
 
 TEST(GrammarTest, LeftFactorize_MultipleCommonPrefixes2) {
-    Grammar g;
+    Grammar        g;
     GrammarFactory factory;
 
     g.st_.PutSymbol("S", false);
@@ -433,7 +433,7 @@ TEST(GrammarTest, LeftFactorize_MultipleCommonPrefixes2) {
 }
 
 TEST(GrammarTest, LeftFactorize_NestedCommonPrefixes) {
-    Grammar g;
+    Grammar        g;
     GrammarFactory factory;
 
     g.st_.PutSymbol("S", false);
@@ -501,7 +501,7 @@ TEST(GrammarTest, LeftFactorize_NestedCommonPrefixes) {
 }
 
 TEST(GrammarTest, LeftFactorize_SingleProduction) {
-    Grammar g;
+    Grammar        g;
     GrammarFactory factory;
 
     g.st_.PutSymbol("S", false);
@@ -555,7 +555,7 @@ TEST(LL1__Test, FirstSet) {
     g.AddProduction("A", {"b"});
 
     LL1Parser ll1(g);
-    
+
     std::unordered_set<std::string> result;
     std::unordered_set<std::string> expected{"a", "b"};
     ll1.First({{"A", g.st_.EOL_}}, result);
@@ -579,7 +579,7 @@ TEST(LL1__Test, FirstSetWithNullableSymbols) {
     g.AddProduction("A", {g.st_.EPSILON_});
 
     LL1Parser ll1(g);
-    
+
     std::unordered_set<std::string> result;
     std::unordered_set<std::string> expected{"a", g.st_.EPSILON_};
     ll1.First({{"A", g.st_.EOL_}}, result);
@@ -604,7 +604,6 @@ TEST(LL1__Test, FirstSetMultipleSymbols) {
     g.AddProduction("B", {g.st_.EPSILON_});
 
     LL1Parser ll1(g);
-    
 
     std::unordered_set<std::string> result;
     std::unordered_set<std::string> expected{"a", "b", g.st_.EPSILON_};
@@ -627,7 +626,6 @@ TEST(LL1__Test, FirstSetEndingWithNullable) {
     g.AddProduction("A", {g.st_.EPSILON_});
 
     LL1Parser ll1(g);
-    
 
     std::unordered_set<std::string> result;
     std::unordered_set<std::string> expected{"a", g.st_.EPSILON_};
@@ -662,7 +660,6 @@ TEST(LL1__Test, FirstSetWithAllSymbols) {
     g.AddProduction("D", {"d"});
 
     LL1Parser ll1(g);
-    
 
     std::unordered_set<std::string> result;
     std::unordered_set<std::string> expected{"a", "b", "d"};
@@ -697,7 +694,6 @@ TEST(LL1__Test, FirstSetWithOneSymbolAndEpsilon) {
     g.AddProduction("D", {"d"});
 
     LL1Parser ll1(g);
-    
 
     std::unordered_set<std::string> result;
     std::unordered_set<std::string> expected{"a", "b", "d", g.st_.EPSILON_};
@@ -729,7 +725,6 @@ TEST(LL1__Test, FirstSetWithMultipleSymbols2) {
     g.AddProduction("T", {g.st_.EPSILON_});
 
     LL1Parser ll1(g);
-    
 
     std::unordered_set<std::string> result;
     std::unordered_set<std::string> expected{"(", "n", "+", g.st_.EPSILON_};
@@ -761,7 +756,6 @@ TEST(LL1__Test, FirstSetWithTerminalSymbolAtTheBeginning) {
     g.AddProduction("T", {g.st_.EPSILON_});
 
     LL1Parser ll1(g);
-    
 
     std::unordered_set<std::string> result;
     std::unordered_set<std::string> expected{"+"};
@@ -793,7 +787,6 @@ TEST(LL1__Test, FirstSetWithOnlyEpsilon) {
     g.AddProduction("T", {g.st_.EPSILON_});
 
     LL1Parser ll1(g);
-    
 
     std::unordered_set<std::string> result;
     std::unordered_set<std::string> expected{g.st_.EPSILON_};
@@ -827,7 +820,6 @@ TEST(LL1__Test, FirstSetWithEpsilon2) {
     g.AddProduction("C", {"c"});
 
     LL1Parser ll1(g);
-    
 
     std::unordered_set<std::string> result;
     std::unordered_set<std::string> expected{"b", "c", g.st_.EPSILON_};
@@ -854,7 +846,6 @@ TEST(LL1__Test, FirstSetWithNestedNullableSymbols) {
     g.AddProduction("B", {g.st_.EPSILON_});
 
     LL1Parser ll1(g);
-    
 
     std::unordered_set<std::string> result;
     std::unordered_set<std::string> expected{"a", "b", g.st_.EPSILON_};
@@ -879,7 +870,6 @@ TEST(LL1__Test, FirstSetWithMultipleNullableSymbols) {
     g.AddProduction("B", {g.st_.EPSILON_});
 
     LL1Parser ll1(g);
-    
 
     std::unordered_set<std::string> result;
     std::unordered_set<std::string> expected{g.st_.EPSILON_};
@@ -903,7 +893,6 @@ TEST(LL1__Test, FirstSetWithTerminalAtEnd) {
     g.AddProduction("A", {g.st_.EPSILON_});
 
     LL1Parser ll1(g);
-    
 
     std::unordered_set<std::string> result;
     std::unordered_set<std::string> expected{"a", "b"};
@@ -995,7 +984,6 @@ TEST(LL1__Test, AllFirstSets) {
     g.AddProduction("D", {"d"});
 
     LL1Parser ll1(g);
-    
 
     std::unordered_map<std::string, std::unordered_set<std::string>> expected{
         {"S", {"a", "b", "d", g.st_.EPSILON_}},
@@ -1004,7 +992,7 @@ TEST(LL1__Test, AllFirstSets) {
         {"C", {"d", g.st_.EPSILON_}},
         {"D", {"a", "d"}}};
 
-    EXPECT_EQ(ll1.first_sets, expected);
+    EXPECT_EQ(ll1.first_sets_, expected);
 }
 
 TEST(LL1__Test, FollowSet2) {
@@ -1032,7 +1020,6 @@ TEST(LL1__Test, FollowSet2) {
     g.AddProduction("C", {"c"});
 
     LL1Parser ll1(g);
-    
 
     std::unordered_set<std::string> result;
     std::unordered_set<std::string> expected{"b", "c", "a", g.st_.EOL_};
@@ -1064,7 +1051,6 @@ TEST(LL1__Test, FollowTest1) {
     g.AddProduction("T", {g.st_.EPSILON_});
 
     LL1Parser ll1(g);
-    
 
     std::unordered_set<std::string> result;
     std::unordered_set<std::string> expected{g.st_.EOL_, ")"};
@@ -1122,7 +1108,6 @@ TEST(LL1__Test, FollowSetWithNestedProductions) {
     g.AddProduction("B", {g.st_.EPSILON_});
 
     LL1Parser ll1(g);
-    
 
     std::unordered_set<std::string> result;
     std::unordered_set<std::string> expected{"b", g.st_.EOL_};
@@ -1149,7 +1134,6 @@ TEST(LL1__Test, FollowSetWithMultipleOccurrences) {
     g.AddProduction("B", {g.st_.EPSILON_});
 
     LL1Parser ll1(g);
-    
 
     std::unordered_set<std::string> result;
     std::unordered_set<std::string> expected{"b", g.st_.EOL_};
@@ -1238,7 +1222,6 @@ TEST(LL1__Test, AllFollowSets) {
     g.AddProduction("T", {g.st_.EPSILON_});
 
     LL1Parser ll1(g);
-    
 
     std::unordered_map<std::string, std::unordered_set<std::string>> result;
     std::unordered_map<std::string, std::unordered_set<std::string>> expected{
@@ -1280,7 +1263,6 @@ TEST(LL1__Test, AllFollowSets2) {
     g.AddProduction("D", {"d"});
 
     LL1Parser ll1(g);
-    
 
     std::unordered_map<std::string, std::unordered_set<std::string>> result;
     std::unordered_map<std::string, std::unordered_set<std::string>> expected{

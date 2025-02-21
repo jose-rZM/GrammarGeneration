@@ -17,7 +17,7 @@ LL1Parser::LL1Parser(Grammar gr) : gr_(std::move(gr)) {
 }
 
 bool LL1Parser::CreateLL1Table() {
-    if (first_sets.empty() || follow_sets_.empty()) {
+    if (first_sets_.empty() || follow_sets_.empty()) {
         ComputeFirstSets();
         ComputeFollowSets();
     }
@@ -61,7 +61,7 @@ void LL1Parser::First(std::span<const std::string>     rule,
         return;
     }
 
-    const std::unordered_set<std::string>& fii = first_sets[rule[0]];
+    const std::unordered_set<std::string>& fii = first_sets_[rule[0]];
     for (const auto& s : fii) {
         if (s != gr_.st_.EPSILON_) {
             result.insert(s);
@@ -78,12 +78,12 @@ void LL1Parser::First(std::span<const std::string>     rule,
 void LL1Parser::ComputeFirstSets() {
     // Init all FIRST to empty
     for (const auto& [nonTerminal, _] : gr_.g_) {
-        first_sets[nonTerminal] = {};
+        first_sets_[nonTerminal] = {};
     }
 
     bool changed;
     do {
-        auto old_first_sets = first_sets; // Copy current state
+        auto old_first_sets = first_sets_; // Copy current state
 
         for (const auto& [nonTerminal, productions] : gr_.g_) {
             for (const auto& prod : productions) {
@@ -95,13 +95,13 @@ void LL1Parser::ComputeFirstSets() {
                     tempFirst.insert(gr_.st_.EPSILON_);
                 }
 
-                auto& current_set = first_sets[nonTerminal];
+                auto& current_set = first_sets_[nonTerminal];
                 current_set.insert(tempFirst.begin(), tempFirst.end());
             }
         }
 
         // Until all remain the same
-        changed = (old_first_sets != first_sets);
+        changed = (old_first_sets != first_sets_);
 
     } while (changed);
 }
