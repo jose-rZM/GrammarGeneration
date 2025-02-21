@@ -15,7 +15,7 @@ TEST(GrammarTest, IsInfinite_WhenGrammarIsInfinite) {
 
     g.axiom_ = "S";
 
-    g.AddProduction("S", {"A", "$"});
+    g.AddProduction("S", {"A", g.st_.EOL_});
     g.AddProduction("A", {"a", "A"});
 
     bool result = factory.IsInfinite(g);
@@ -35,7 +35,7 @@ TEST(GrammarTest, IsInfinite_WhenGrammarIsNotInfinite) {
 
     g.axiom_ = "S";
 
-    g.AddProduction("S", {"A", "$"});
+    g.AddProduction("S", {"A", g.st_.EOL_});
     g.AddProduction("A", {"a", "A"});
     g.AddProduction("A", {"b"});
 
@@ -57,7 +57,7 @@ TEST(GrammarTest, HasUnreachableSymbols_WhenGrammarHasUnreachableSymbols) {
 
     g.axiom_ = "S";
 
-    g.AddProduction("S", {"A", "$"});
+    g.AddProduction("S", {"A", g.st_.EOL_});
     g.AddProduction("A", {"a", "b"});
     g.AddProduction("B", {"c"});
 
@@ -79,7 +79,7 @@ TEST(GrammarTest, HasUnreachableSymbols_WhenGrammarHasNoUnreachableSymbols) {
 
     g.axiom_ = "S";
 
-    g.AddProduction("S", {"A", "$"});
+    g.AddProduction("S", {"A", g.st_.EOL_});
     g.AddProduction("A", {"a", "b", "B"});
     g.AddProduction("B", {"c"});
 
@@ -99,7 +99,7 @@ TEST(GrammarTest, HasLeftDirectRecursion_WhenGrammarHasLeftRecursion) {
 
     g.axiom_ = "S";
 
-    g.AddProduction("S", {"A", "$"});
+    g.AddProduction("S", {"A", g.st_.EOL_});
     g.AddProduction("A", {"A", "a"});
     g.AddProduction("A", {"b"});
 
@@ -119,7 +119,7 @@ TEST(GrammarTest, HasLeftDirectRecursion_WhenGrammarHasNoLeftRecursion) {
 
     g.axiom_ = "S";
 
-    g.AddProduction("S", {"A", "$"});
+    g.AddProduction("S", {"A", g.st_.EOL_});
     g.AddProduction("A", {"a", "A"});
     g.AddProduction("A", {"b"});
 
@@ -139,7 +139,7 @@ TEST(GrammarTest, RemoveDirectLeftRecursion) {
 
     g.axiom_ = "S";
 
-    g.AddProduction("S", {"A", "$"});
+    g.AddProduction("S", {"A", g.st_.EOL_});
 
     g.AddProduction("A", {"A", "a"});
     g.AddProduction("A", {"b"});
@@ -163,7 +163,7 @@ TEST(GrammarTest, RemoveDirectLeftRecursion_WhenThereIsNoLeftRecursion) {
 
     g.axiom_ = "S";
 
-    g.AddProduction("S", {"A", "$"});
+    g.AddProduction("S", {"A", g.st_.EOL_});
 
     g.AddProduction("A", {"a", "A"});
     g.AddProduction("A", {"b"});
@@ -286,7 +286,7 @@ TEST(LL1__Test, FirstSetWithAllSymbols) {
 
     g.axiom_ = "S";
 
-    g.AddProduction("S", {"A", "$"});
+    g.AddProduction("S", {"A", g.st_.EOL_});
     g.AddProduction("A", {"a", "B", "D"});
     g.AddProduction("A", {"C", "B"});
     g.AddProduction("B", {"b", "B"});
@@ -321,7 +321,7 @@ TEST(LL1__Test, FirstSetWithOneSymbolAndEpsilon) {
 
     g.axiom_ = "S";
 
-    g.AddProduction("S", {"A", "$"});
+    g.AddProduction("S", {"A", g.st_.EOL_});
     g.AddProduction("A", {"a", "B", "D"});
     g.AddProduction("A", {"C", "B"});
     g.AddProduction("B", {"b", "B"});
@@ -547,6 +547,63 @@ TEST(LL1__Test, FirstSetWithTerminalAtEnd) {
     EXPECT_EQ(result, expected);
 }
 
+TEST(LL1__Test, FirstSetWithIndirectLeftRecursion) {
+    Grammar g;
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"A", g.st_.EOL_});
+    g.AddProduction("A", {"B", "a"});
+    g.AddProduction("B", {"A", "b"});
+    g.AddProduction("B", {"a"});
+
+    LL1Parser ll1(g);
+    ll1.ComputeFirstSets();
+
+    std::unordered_set<std::string> result;
+    std::unordered_set<std::string> expected{"a"};
+    ll1.First({{"A"}}, result);
+
+    EXPECT_EQ(result, expected);
+}
+
+TEST(LL1__Test, FirstSetWithComplexNullableSymbols) {
+    Grammar g;
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("C", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+    g.st_.PutSymbol("c", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"A", "B", "C", g.st_.EOL_});
+    g.AddProduction("A", {"a", "A"});
+    g.AddProduction("A", {g.st_.EPSILON_});
+    g.AddProduction("B", {"b", "B"});
+    g.AddProduction("B", {g.st_.EPSILON_});
+    g.AddProduction("C", {"c", "C"});
+    g.AddProduction("C", {g.st_.EPSILON_});
+
+    LL1Parser ll1(g);
+    ll1.ComputeFirstSets();
+
+    std::unordered_set<std::string> result;
+    std::unordered_set<std::string> expected{"a", "b", "c", g.st_.EPSILON_};
+    ll1.First({{"A", "B", "C"}}, result);
+
+    EXPECT_EQ(result, expected);
+}
+
 TEST(LL1__Test, AllFirstSets) {
     Grammar g;
     g.st_.PutSymbol("S", false);
@@ -562,7 +619,7 @@ TEST(LL1__Test, AllFirstSets) {
 
     g.axiom_ = "S";
 
-    g.AddProduction("S", {"A", "$"});
+    g.AddProduction("S", {"A", g.st_.EOL_});
     g.AddProduction("A", {"a", "B", "D"});
     g.AddProduction("A", {"C", "B"});
     g.AddProduction("B", {"b", "B"});
@@ -736,6 +793,63 @@ TEST(LL1__Test, FollowSetWithMultipleOccurrences) {
     EXPECT_EQ(result, expected);
 }
 
+TEST(LL1__Test, FollowSetWithIndirectLeftRecursion) {
+    Grammar g;
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"A", g.st_.EOL_});
+    g.AddProduction("A", {"B", "a"});
+    g.AddProduction("B", {"A", "b"});
+    g.AddProduction("B", {"a"});
+
+    LL1Parser ll1(g);
+    ll1.ComputeFirstSets();
+    ll1.ComputeFollowSets();
+
+    std::unordered_set<std::string> result = ll1.Follow("A");
+    std::unordered_set<std::string> expected{"b", g.st_.EOL_};
+
+    EXPECT_EQ(result, expected);
+}
+
+TEST(LL1__Test, FollowSetWithMultipleNullableSymbols) {
+    Grammar g;
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("C", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+    g.st_.PutSymbol("c", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"A", "B", "C", g.st_.EOL_});
+    g.AddProduction("A", {"a", "A"});
+    g.AddProduction("A", {g.st_.EPSILON_});
+    g.AddProduction("B", {"b", "B"});
+    g.AddProduction("B", {g.st_.EPSILON_});
+    g.AddProduction("C", {"c", "C"});
+    g.AddProduction("C", {g.st_.EPSILON_});
+
+    LL1Parser ll1(g);
+    ll1.ComputeFirstSets();
+    ll1.ComputeFollowSets();
+
+    std::unordered_set<std::string> result = ll1.Follow("B");
+    std::unordered_set<std::string> expected{"c", g.st_.EOL_};
+
+    EXPECT_EQ(result, expected);
+}
+
 TEST(LL1__Test, AllFollowSets) {
     Grammar g;
     g.st_.PutSymbol("S", false);
@@ -790,7 +904,7 @@ TEST(LL1__Test, AllFollowSets2) {
 
     g.axiom_ = "S";
 
-    g.AddProduction("S", {"A", "$"});
+    g.AddProduction("S", {"A", g.st_.EOL_});
     g.AddProduction("A", {"a", "B", "D"});
     g.AddProduction("A", {"C", "B"});
     g.AddProduction("B", {"b", "B"});
