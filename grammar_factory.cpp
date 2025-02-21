@@ -80,6 +80,11 @@ Grammar GrammarFactory::GenLL1Grammar(int level) {
         if (ll1.CreateLL1Table()) {
             break;
         }
+        LeftFactorize(gr);
+        ll1 = LL1Parser(gr);
+        if (ll1.CreateLL1Table()) {
+            break;
+        }
         gr = PickOne(level);
     }
     return gr;
