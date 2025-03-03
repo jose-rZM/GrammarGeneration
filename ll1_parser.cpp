@@ -50,6 +50,10 @@ void LL1Parser::First(std::span<const std::string>     rule,
         return;
     }
 
+    if (rule.size() > 1 && rule[0] == gr_.st_.EPSILON_) {
+        First(std::span<const std::string>(rule.begin() + 1, rule.end()), result);
+    } else {
+
     if (gr_.st_.IsTerminal(rule[0])) {
         // EOL cannot be in first sets, if we reach EOL it means that the axiom
         // is nullable, so epsilon is included instead
