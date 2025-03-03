@@ -751,6 +751,45 @@ bool GrammarFactory::HasDirectLeftRecursion(Grammar& grammar) {
     return false;
 }
 
+bool GrammarFactory::HasIndirectLeftRecursion(Grammar& grammar) {
+    return false;
+}
+
+std::unordered_set<std::string>
+GrammarFactory::NullableSymbols(Grammar& grammar) {
+    std::unordered_set<std::string> nullable;
+    bool                            changed;
+
+    nullable.reserve(grammar.st_.non_terminals_.size());
+    do {
+        changed = false;
+        for (const auto& [nt, productions] : grammar.g_) {
+            if (nullable.count(nt)) {
+                continue;
+            }
+            for (const production& prod : productions) {
+                if (prod.size() == 1 && prod[0] == grammar.st_.EPSILON_) {
+                    nullable.insert(nt);
+                    changed = true;
+                } else {
+                    bool all_nullable = true;
+                    for (const std::string& sym : prod) {
+                        if (!nullable.count(sym) && sym != grammar.st_.EOL_) {
+                            all_nullable = false;
+                            break;
+                        }
+                    }
+                    if (all_nullable) {
+                        nullable.insert(nt);
+                        changed = true;
+                    }
+                }
+            }
+        }
+    } while (changed);
+    return nullable;
+}
+
 void GrammarFactory::RemoveLeftRecursion(Grammar& grammar) {
     if (!HasDirectLeftRecursion(grammar)) {
         return;

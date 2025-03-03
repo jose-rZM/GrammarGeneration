@@ -196,6 +196,20 @@ struct GrammarFactory {
      */
     bool HasDirectLeftRecursion(Grammar& grammar);
 
+    /**
+     * @brief Checks if a grammar contains indirect left recursion.
+     * @param grammar The grammar to check.
+     * @return true if there is direct left recursion, false otherwise.
+     */
+    bool HasIndirectLeftRecursion(Grammar& grammar);
+
+    /**
+     * @brief Find nullable symbols in a grammar.
+     * @param grammar The grammar to check.
+     * @return set of nullable symbols.
+     */
+    std::unordered_set<std::string> NullableSymbols(Grammar& grammar);
+
     // -------- TRANSFORMATIONS --------
     /**
      * @brief Removes direct left recursion in a grammar. A grammar has direct

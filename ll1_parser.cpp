@@ -51,32 +51,34 @@ void LL1Parser::First(std::span<const std::string>     rule,
     }
 
     if (rule.size() > 1 && rule[0] == gr_.st_.EPSILON_) {
-        First(std::span<const std::string>(rule.begin() + 1, rule.end()), result);
+        First(std::span<const std::string>(rule.begin() + 1, rule.end()),
+              result);
     } else {
 
-    if (gr_.st_.IsTerminal(rule[0])) {
-        // EOL cannot be in first sets, if we reach EOL it means that the axiom
-        // is nullable, so epsilon is included instead
-        if (rule[0] == gr_.st_.EOL_) {
-            result.insert(gr_.st_.EPSILON_);
+        if (gr_.st_.IsTerminal(rule[0])) {
+            // EOL cannot be in first sets, if we reach EOL it means that the
+            // axiom is nullable, so epsilon is included instead
+            if (rule[0] == gr_.st_.EOL_) {
+                result.insert(gr_.st_.EPSILON_);
+                return;
+            }
+            result.insert(rule[0]);
             return;
         }
-        result.insert(rule[0]);
-        return;
-    }
 
-    const std::unordered_set<std::string>& fii = first_sets_[rule[0]];
-    for (const auto& s : fii) {
-        if (s != gr_.st_.EPSILON_) {
-            result.insert(s);
+        const std::unordered_set<std::string>& fii = first_sets_[rule[0]];
+        for (const auto& s : fii) {
+            if (s != gr_.st_.EPSILON_) {
+                result.insert(s);
+            }
         }
-    }
 
-    if (fii.find(gr_.st_.EPSILON_) == fii.cend()) {
-        return;
+        if (fii.find(gr_.st_.EPSILON_) == fii.cend()) {
+            return;
+        }
+        First(std::span<const std::string>(rule.begin() + 1, rule.end()),
+              result);
     }
-    First(std::span<const std::string>(rule.begin() + 1, rule.end()), result);
-}
 }
 
 // Least fixed point
@@ -183,8 +185,6 @@ LL1Parser::PredictionSymbols(const std::string&              antecedent,
     hd.merge(Follow(antecedent));
     return hd;
 }
-
-
 
 void LL1Parser::PrintTable() {
     using namespace tabulate;

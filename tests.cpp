@@ -95,6 +95,30 @@ TEST(GrammarTest, HasUnreachableSymbols_WhenGrammarHasNoUnreachableSymbols) {
     EXPECT_FALSE(result);
 }
 
+TEST(GrammarTest, NullableSymbols_WhenNoSymbolsAreNullable) {
+    Grammar        g;
+    GrammarFactory factory;
+
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("S'", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"S'", g.st_.EOL_});
+    g.AddProduction("S'", {"A", "B"});
+    g.AddProduction("A", {"a"});
+    g.AddProduction("B", {"b"});
+
+    std::unordered_set<std::string> nullable = factory.NullableSymbols(g);
+    std::unordered_set<std::string> expected{};
+    EXPECT_EQ(nullable, expected);
+}
+
 TEST(GrammarTest, HasLeftDirectRecursion_WhenGrammarHasLeftRecursion) {
     Grammar        g;
     GrammarFactory factory;
@@ -113,6 +137,255 @@ TEST(GrammarTest, HasLeftDirectRecursion_WhenGrammarHasLeftRecursion) {
     bool result = factory.HasDirectLeftRecursion(g);
 
     EXPECT_TRUE(result);
+}
+
+TEST(GrammarTest, NullableSymbols_WhenAllSymbolsAreNullable) {
+    Grammar        g;
+    GrammarFactory factory;
+
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("S'", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"A", g.st_.EOL_});
+    g.AddProduction("A", {"A", "B"});
+    g.AddProduction("A", {g.st_.EPSILON_});
+    g.AddProduction("B", {g.st_.EPSILON_});
+
+    std::unordered_set<std::string> nullable = factory.NullableSymbols(g);
+    std::unordered_set<std::string> expected{"S", "A", "B"};
+    EXPECT_EQ(nullable, expected);
+}
+
+TEST(GrammarTest, NullableSymbols_WhenOnlyCertainSymbolsAreNullable) {
+    Grammar        g;
+    GrammarFactory factory;
+
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("S'", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"A", g.st_.EOL_});
+    g.AddProduction("A", {"A", "B"});
+    g.AddProduction("A", {"a"});
+    g.AddProduction("B", {g.st_.EPSILON_});
+
+    std::unordered_set<std::string> nullable = factory.NullableSymbols(g);
+    std::unordered_set<std::string> expected{"B"};
+    EXPECT_EQ(nullable, expected);
+}
+
+TEST(GrammarTest, NullableSymbols_WhenNestedNullableSymbols) {
+    Grammar        g;
+    GrammarFactory factory;
+
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("S'", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("C", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"S'", g.st_.EOL_});
+    g.AddProduction("S'", {"A", "B"});
+    g.AddProduction("A", {"C"});
+    g.AddProduction("B", {g.st_.EPSILON_});
+    g.AddProduction("C", {g.st_.EPSILON_});
+
+    std::unordered_set<std::string> nullable = factory.NullableSymbols(g);
+    std::unordered_set<std::string> expected{"S'", "S", "A", "B", "C"};
+    EXPECT_EQ(nullable, expected);
+}
+
+TEST(GrammarTest, NullableSymbols_WhenMixedNullableAndNonNullableSymbols) {
+    Grammar        g;
+    GrammarFactory factory;
+
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("S'", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("C", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"S'", g.st_.EOL_});
+    g.AddProduction("S'", {"A", "B"});
+    g.AddProduction("A", {"a"});
+    g.AddProduction("B", {"C"});
+    g.AddProduction("C", {g.st_.EPSILON_});
+
+    std::unordered_set<std::string> nullable = factory.NullableSymbols(g);
+    std::unordered_set<std::string> expected{"B", "C"};
+    EXPECT_EQ(nullable, expected);
+}
+
+TEST(GrammarTest, NullableSymbols_ComplexGrammar) {
+    Grammar        g;
+    GrammarFactory factory;
+
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("S'", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("C", false);
+    g.st_.PutSymbol("D", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"S'", g.st_.EOL_});
+    g.AddProduction("S'", {"A", "B"});
+    g.AddProduction("A", {"C", "D"});
+    g.AddProduction("B", {g.st_.EPSILON_});
+    g.AddProduction("C", {"a"});
+    g.AddProduction("D", {g.st_.EPSILON_});
+
+    std::unordered_set<std::string> nullable = factory.NullableSymbols(g);
+    std::unordered_set<std::string> expected{"B", "D"};
+    EXPECT_EQ(nullable, expected);
+}
+
+TEST(GrammarTest, NullableSymbols_RecursiveNullableSymbols) {
+    Grammar        g;
+    GrammarFactory factory;
+
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("S'", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"S'", g.st_.EOL_});
+    g.AddProduction("S'", {"A"});
+    g.AddProduction("A", {"A", "B"});
+    g.AddProduction("A", {g.st_.EPSILON_});
+    g.AddProduction("B", {g.st_.EPSILON_});
+
+    std::unordered_set<std::string> nullable = factory.NullableSymbols(g);
+    std::unordered_set<std::string> expected{"S'", "S", "A", "B"};
+    EXPECT_EQ(nullable, expected);
+}
+
+TEST(GrammarTest, NullableSymbols_DeeplyNestedAndRecursive) {
+    Grammar        g;
+    GrammarFactory factory;
+
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("S'", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("C", false);
+    g.st_.PutSymbol("D", false);
+    g.st_.PutSymbol("E", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"S'", g.st_.EOL_});
+    g.AddProduction("S'", {"A"});
+    g.AddProduction("A", {"B", "C"});
+    g.AddProduction("B", {"D", "E"});
+    g.AddProduction("C", {"C", "A"});
+    g.AddProduction("C", {g.st_.EPSILON_});
+    g.AddProduction("D", {"D", "B"});
+    g.AddProduction("D", {g.st_.EPSILON_});
+    g.AddProduction("E", {g.st_.EPSILON_});
+
+    std::unordered_set<std::string> nullable = factory.NullableSymbols(g);
+    std::unordered_set<std::string> expected{"S'", "S", "A", "B",
+                                             "C",  "D", "E"};
+    EXPECT_EQ(nullable, expected);
+}
+
+TEST(GrammarTest, NullableSymbols_MixedWithComplexDependencies) {
+    Grammar        g;
+    GrammarFactory factory;
+
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("S'", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("C", false);
+    g.st_.PutSymbol("D", false);
+    g.st_.PutSymbol("E", false);
+    g.st_.PutSymbol("F", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"S'", g.st_.EOL_});
+    g.AddProduction("S'", {"A", "B"});
+    g.AddProduction("A", {"C", "D"});
+    g.AddProduction("B", {"E", "F"});
+    g.AddProduction("C", {"a"});
+    g.AddProduction("D", {g.st_.EPSILON_});
+    g.AddProduction("E", {"E", "B"});
+    g.AddProduction("E", {g.st_.EPSILON_});
+    g.AddProduction("F", {"b"});
+
+    std::unordered_set<std::string> nullable = factory.NullableSymbols(g);
+    std::unordered_set<std::string> expected{"D", "E"};
+    EXPECT_EQ(nullable, expected);
+}
+
+TEST(GrammarTest, NullableSymbols_CyclicDependencies) {
+    Grammar        g;
+    GrammarFactory factory;
+
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("S'", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("C", false);
+    g.st_.PutSymbol("D", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"S'", g.st_.EOL_});
+    g.AddProduction("S'", {"A"});
+
+    g.AddProduction("A", {"B", "C"});
+    g.AddProduction("B", {"D", "A"});
+    g.AddProduction("C", {g.st_.EPSILON_});
+    g.AddProduction("D", {"D", "B"});
+    g.AddProduction("D", {g.st_.EPSILON_});
+
+    std::unordered_set<std::string> nullable = factory.NullableSymbols(g);
+    std::unordered_set<std::string> expected{"C", "D"};
+    EXPECT_EQ(nullable, expected);
 }
 
 TEST(GrammarTest, HasLeftDirectRecursion_WhenGrammarHasNoLeftRecursion) {
