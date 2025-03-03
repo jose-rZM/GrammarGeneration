@@ -77,6 +77,7 @@ void LL1Parser::First(std::span<const std::string>     rule,
     }
     First(std::span<const std::string>(rule.begin() + 1, rule.end()), result);
 }
+}
 
 // Least fixed point
 void LL1Parser::ComputeFirstSets() {
@@ -183,11 +184,13 @@ LL1Parser::PredictionSymbols(const std::string&              antecedent,
     return hd;
 }
 
+
+
 void LL1Parser::PrintTable() {
     using namespace tabulate;
     Table table;
 
-    Table::Row_t headers = {"Non-terminal"};
+    Table::Row_t                          headers = {"Non-terminal"};
     std::unordered_map<std::string, bool> columns;
 
     for (const auto& outerPair : ll1_t_) {
@@ -206,17 +209,19 @@ void LL1Parser::PrintTable() {
         .font_color(Color::yellow)
         .font_style({FontStyle::bold});
 
-
     std::vector<std::string> non_terminals;
     for (const auto& outerPair : ll1_t_) {
         non_terminals.push_back(outerPair.first);
     }
 
-    std::sort(non_terminals.begin(), non_terminals.end(), [this](const std::string& a, const std::string& b) {
-        if (a == gr_.axiom_) return true; // Axiom comes first
-        if (b == gr_.axiom_) return false; // Axiom comes first
-        return a < b; // Sort the rest alphabetically
-    });
+    std::sort(non_terminals.begin(), non_terminals.end(),
+              [this](const std::string& a, const std::string& b) {
+                  if (a == gr_.axiom_)
+                      return true; // Axiom comes first
+                  if (b == gr_.axiom_)
+                      return false; // Axiom comes first
+                  return a < b;     // Sort the rest alphabetically
+              });
 
     for (const std::string& nonTerminal : non_terminals) {
         Table::Row_t row_data = {nonTerminal};
