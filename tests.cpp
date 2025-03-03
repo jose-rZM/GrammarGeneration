@@ -388,6 +388,227 @@ TEST(GrammarTest, NullableSymbols_CyclicDependencies) {
     EXPECT_EQ(nullable, expected);
 }
 
+TEST(GrammarTest, HasIndirectLeftRecursion_NoIndirectLeftRecursion) {
+    Grammar        g;
+    GrammarFactory factory;
+
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"A", g.st_.EOL_});
+
+    g.AddProduction("A", {"a", "B"});
+    g.AddProduction("B", {"b"});
+
+    bool result = factory.HasIndirectLeftRecursion(g);
+
+    EXPECT_FALSE(result);
+}
+
+TEST(GrammarTest, HasIndirectLeftRecursion_SimpleIndirectLeftRecursion) {
+    Grammar        g;
+    GrammarFactory factory;
+
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("a", true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"A", g.st_.EOL_});
+
+    g.AddProduction("A", {"B", "a"});
+    g.AddProduction("B", {"A", "a"});
+
+    bool result = factory.HasIndirectLeftRecursion(g);
+
+    EXPECT_TRUE(result);
+}
+
+TEST(GrammarTest, HasIndirectLeftRecursion_MultipleStepsIndirectLeftRecursion) {
+    Grammar        g;
+    GrammarFactory factory;
+
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("C", false);
+    g.st_.PutSymbol("a", true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"A", g.st_.EOL_});
+    g.AddProduction("A", {"B", "a"});
+    g.AddProduction("B", {"C", "a"});
+    g.AddProduction("C", {"A", "a"});
+
+    bool result = factory.HasIndirectLeftRecursion(g);
+
+    EXPECT_TRUE(result);
+}
+
+TEST(GrammarTest,
+     HasIndirectLeftRecursion_ComplexRulesNoIndirectLeftRecursion) {
+    Grammar        g;
+    GrammarFactory factory;
+
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("C", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"A", g.st_.EOL_});
+    g.AddProduction("A", {"B", "C"});
+    g.AddProduction("B", {"a"});
+    g.AddProduction("C", {"b"});
+
+    bool result = factory.HasIndirectLeftRecursion(g);
+
+    EXPECT_FALSE(result);
+}
+
+TEST(GrammarTest,
+     HasIndirectLeftRecursion_MultipleCyclesIndirectLeftRecursion) {
+    Grammar        g;
+    GrammarFactory factory;
+
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("C", false);
+    g.st_.PutSymbol("a", true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"A", g.st_.EOL_});
+    g.AddProduction("A", {"B", "a"});
+    g.AddProduction("B", {"C", "a"});
+    g.AddProduction("C", {"A", "a"});
+    g.AddProduction("C", {"B", "a"});
+
+    bool result = factory.HasIndirectLeftRecursion(g);
+
+    EXPECT_TRUE(result);
+}
+
+TEST(GrammarTest,
+     HasIndirectLeftRecursion_NullableSymbolEnablesIndirectLeftRecursion) {
+    Grammar        g;
+    GrammarFactory factory;
+
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("C", false);
+    g.st_.PutSymbol("d", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"A", g.st_.EOL_});
+
+    g.AddProduction("A", {"B", "C", "d"});
+    g.AddProduction("B", {"d"});
+    g.AddProduction("B", {g.st_.EPSILON_});
+    g.AddProduction("C", {"A"});
+
+    bool result = factory.HasIndirectLeftRecursion(g);
+
+    EXPECT_TRUE(result);
+}
+
+TEST(GrammarTest,
+     HasIndirectLeftRecursion_NullableSymbolsNoIndirectLeftRecursion) {
+    Grammar        g;
+    GrammarFactory factory;
+
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("C", false);
+    g.st_.PutSymbol("d", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"A", g.st_.EOL_});
+    g.AddProduction("A", {"B", "C", "d"});
+    g.AddProduction("B", {"d"});
+    g.AddProduction("B", {g.st_.EPSILON_});
+    g.AddProduction("C", {"d"});
+
+    bool result = factory.HasIndirectLeftRecursion(g);
+
+    EXPECT_FALSE(result);
+}
+
+TEST(
+    GrammarTest,
+    HasIndirectLeftRecursion_ComplexNullableSymbolsEnableIndirectLeftRecursion) {
+    Grammar        g;
+    GrammarFactory factory;
+
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("C", false);
+    g.st_.PutSymbol("D", false);
+    g.st_.PutSymbol("d", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"A", g.st_.EOL_});
+    g.AddProduction("A", {"B", "C", "d"});
+    g.AddProduction("B", {"D"});
+    g.AddProduction("B", {g.st_.EPSILON_});
+    g.AddProduction("C", {"A"});
+    g.AddProduction("D", {"d"});
+    g.AddProduction("D", {g.st_.EPSILON_});
+
+    bool result = factory.HasIndirectLeftRecursion(g);
+
+    EXPECT_TRUE(result);
+}
+
+TEST(GrammarTest,
+     HasIndirectLeftRecursion_NullableSymbolChainEnablesIndirectLeftRecursion) {
+    Grammar        g;
+    GrammarFactory factory;
+
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("C", false);
+    g.st_.PutSymbol("D", false);
+    g.st_.PutSymbol("d", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"A", g.st_.EOL_});
+    g.AddProduction("A", {"B", "C", "d"});
+    g.AddProduction("B", {"D"});
+    g.AddProduction("B", {g.st_.EPSILON_});
+    g.AddProduction("C", {"A"});
+    g.AddProduction("D", {"d"});
+    g.AddProduction("D", {g.st_.EPSILON_});
+
+    bool result = factory.HasIndirectLeftRecursion(g);
+
+    EXPECT_TRUE(result);
+}
+
 TEST(GrammarTest, HasLeftDirectRecursion_WhenGrammarHasNoLeftRecursion) {
     Grammar        g;
     GrammarFactory factory;

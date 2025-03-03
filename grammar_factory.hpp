@@ -204,6 +204,15 @@ struct GrammarFactory {
     bool HasIndirectLeftRecursion(Grammar& grammar);
 
     /**
+     * @brief Checks if directed graph has a cycle using topological sort.
+     * @param graph The directed graph.
+     * @return true if grammar has cycle.
+     */
+    bool
+    HasCycle(const std::unordered_map<std::string,
+                                      std::unordered_set<std::string>>& graph);
+
+    /**
      * @brief Find nullable symbols in a grammar.
      * @param grammar The grammar to check.
      * @return set of nullable symbols.

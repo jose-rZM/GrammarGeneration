@@ -752,7 +752,64 @@ bool GrammarFactory::HasDirectLeftRecursion(Grammar& grammar) {
 }
 
 bool GrammarFactory::HasIndirectLeftRecursion(Grammar& grammar) {
-    return false;
+    std::unordered_set<std::string> nullable = NullableSymbols(grammar);
+    std::unordered_map<std::string, std::unordered_set<std::string>> graph;
+
+    for (const auto& [nt, productions] : grammar.g_) {
+        graph[nt] = {};
+        for (const production& prod : productions) {
+            if (!grammar.st_.IsTerminal(prod[0])) {
+                graph[nt].insert(prod[0]);
+            }
+            for (size_t i = 1; i < prod.size(); ++i) {
+                if (grammar.st_.IsTerminal(prod[i])) {
+                    break;
+                }
+                graph[nt].insert(prod[i]);
+                if (!nullable.count(prod[i])) {
+                    break;
+                }
+            }
+        }
+    }
+    return !graph.empty() && HasCycle(graph);
+}
+
+bool GrammarFactory::HasCycle(
+    const std::unordered_map<std::string, std::unordered_set<std::string>>&
+        graph) {
+    std::unordered_map<std::string, int> in_degree;
+    std::queue<std::string>              q;
+
+    for (const auto& [nt, _] : graph) {
+        in_degree[nt] = 0;
+    }
+
+    for (const auto& [nt, adjacents] : graph) {
+        for (const std::string& adj : adjacents) {
+            in_degree[adj]++;
+        }
+    }
+
+    for (const auto& [node, degree] : in_degree) {
+        if (degree == 0) {
+            q.push(node);
+        }
+    }
+
+    int processed_nodes = 0;
+    while (!q.empty()) {
+        std::string node = q.front();
+        q.pop();
+        processed_nodes++;
+
+        for (const std::string& adj : graph.at(node)) {
+            if (--in_degree[adj] == 0) {
+                q.push(adj);
+            }
+        }
+    }
+    return static_cast<size_t>(processed_nodes) != in_degree.size();
 }
 
 std::unordered_set<std::string>
