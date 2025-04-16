@@ -38,14 +38,14 @@ void SLR1Parser::DebugStates() const {
             std::ranges::find_if(states_, [state](const auto& st) -> bool {
                 return st.id_ == state;
             });
-        row.emplace_back(state);
+        row.push_back(std::to_string(state));
 
         std::string str = "";
         for (const auto& item : currentIt->items_) {
             str += item.ToString();
             str += "\n";
         }
-        row.emplace_back(str);
+        row.push_back(str);
         table.add_row(row);
     }
     table.column(0)
@@ -114,7 +114,7 @@ void SLR1Parser::DebugActions() {
                     }
                 }
             }
-            row_data.emplace_back(cell);
+            row_data.push_back(cell);
         }
         table.add_row(row_data);
     }
@@ -139,9 +139,9 @@ void SLR1Parser::DebugActions() {
                 for (const auto& sym : action.item->consequent_) {
                     rule += sym + " ";
                 }
-                row.emplace_back(state);
-                row.emplace_back(symbol);
-                row.emplace_back(rule);
+                row.push_back(std::to_string(state));
+                row.push_back(symbol);
+                row.push_back(rule);
                 reduce_table.add_row(row);
             }
         }
