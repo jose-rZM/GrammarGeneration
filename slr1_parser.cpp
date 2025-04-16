@@ -33,10 +33,11 @@ void SLR1Parser::DebugStates() const {
 
     for (size_t state = 0; state < states_.size(); ++state) {
         tabulate::Table::Row_t row;
-        const auto             currentIt = std::find_if(
-            states_.begin(), states_.end(),
-            [state](const auto& st) -> bool { return st.id_ == state; });
+       const auto currentIt = std::ranges::find_if(states_, [state](const auto& st) -> bool {
+            return st.id_ == state;
+        });
         row.push_back(std::to_string(state));
+
         std::string str = "";
         for (const auto& item : currentIt->items_) {
             str += item.ToString();
@@ -228,21 +229,21 @@ bool SLR1Parser::MakeParser() {
         std::unordered_set<std::string> nextSymbols;
         current = pending.front();
         pending.pop();
-        auto it = std::find_if(
-            states_.begin(), states_.end(),
-            [current](const state& st) -> bool { return st.id_ == current; });
+        auto it = std::ranges::find_if(states_, [current](const state& st) -> bool {
+            return st.id_ == current;
+        });
         if (it == states_.end()) {
             break;
         }
         const state& qi = *it;
-        std::for_each(qi.items_.begin(), qi.items_.end(),
-                      [&](const Lr0Item& item) -> void {
-                          std::string next = item.NextToDot();
-                          if (next != gr_.st_.EPSILON_ &&
-                              next != gr_.st_.EOL_) {
-                              nextSymbols.insert(next);
-                          }
-                      });
+
+        std::ranges::for_each(qi.items_, [&](const Lr0Item& item) {
+            std::string next = item.NextToDot();
+            if (next != gr_.st_.EPSILON_ && next != gr_.st_.EOL_) {
+                nextSymbols.insert(next);
+            }
+        });
+
         for (const std::string& symbol : nextSymbols) {
             state newState;
             newState.id_ = i;
@@ -307,8 +308,8 @@ void SLR1Parser::ClosureUtil(std::unordered_set<Lr0Item>&     items,
             std::find(visited.cbegin(), visited.cend(), next) ==
                 visited.cend()) {
             const std::vector<production>& rules = gr_.g_.at(next);
-            std::for_each(rules.begin(), rules.end(),
-                          [&](const auto& rule) -> void {
+            std::ranges::for_each(rules,
+                          [&](const auto& rule) {
                               newItems.insert({item.NextToDot(), rule,
                                                gr_.st_.EPSILON_, gr_.st_.EOL_});
                           });
