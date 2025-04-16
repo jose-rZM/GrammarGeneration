@@ -286,7 +286,9 @@ bool SLR1Parser::MakeParser() {
             return false;
         }
     }
-    return true;
+    return std::ranges::all_of(states_, [this](const state& st) {
+        return SolveLRConflicts(st);
+    });
 }
 
 void SLR1Parser::Closure(std::unordered_set<Lr0Item>& items) {
