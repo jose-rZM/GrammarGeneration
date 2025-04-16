@@ -208,16 +208,17 @@ struct GrammarFactory {
      * @param graph The directed graph.
      * @return true if grammar has cycle.
      */
-    bool
-    HasCycle(const std::unordered_map<std::string,
-                                      std::unordered_set<std::string>>& graph) const;
+    bool HasCycle(
+        const std::unordered_map<std::string, std::unordered_set<std::string>>&
+            graph) const;
 
     /**
      * @brief Find nullable symbols in a grammar.
      * @param grammar The grammar to check.
      * @return set of nullable symbols.
      */
-    std::unordered_set<std::string> NullableSymbols(const Grammar& grammar) const;
+    std::unordered_set<std::string>
+    NullableSymbols(const Grammar& grammar) const;
 
     // -------- TRANSFORMATIONS --------
     /**

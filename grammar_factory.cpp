@@ -991,8 +991,9 @@ bool GrammarFactory::StartsWith(const production&               prod,
     return i == prefix.size();
 }
 
-std::string GrammarFactory::GenerateNewNonTerminal(const Grammar&     grammar,
-                                                   const std::string& base) const {
+std::string
+GrammarFactory::GenerateNewNonTerminal(const Grammar&     grammar,
+                                       const std::string& base) const {
     std::string nt = base;
     while (grammar.st_.non_terminals_.contains(nt)) {
         nt += "'";
