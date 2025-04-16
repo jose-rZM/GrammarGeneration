@@ -2082,6 +2082,160 @@ TEST(SLR1_ClosureTest, MixedDotPositionsWithNullableSymbols) {
     EXPECT_EQ(items, expected);
 }
 
+TEST(SLR1_MakeInitialState, BasicGrammar) {
+    Grammar g;
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+    
+    g.axiom_ = "S";
+    g.AddProduction("S", {"a", g.st_.EOL_});
+    
+    SLR1Parser slr1(g);
+    slr1.MakeInitialState();
+    
+    const auto& states = slr1.states_;
+    ASSERT_EQ(states.size(), 1);
+    
+    const auto& initial_state = *states.begin();
+    EXPECT_EQ(initial_state.id_, 0);
+    
+    std::unordered_set<Lr0Item> expected_items = {
+        {"S", {"a", g.st_.EOL_}, 0, g.st_.EPSILON_, g.st_.EOL_}
+    };
+    
+    EXPECT_EQ(initial_state.items_, expected_items);
+}
+
+TEST(SLR1_MakeInitialState, MultipleAxiomProductions) {
+    Grammar g;
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("E", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+    
+    g.axiom_ = "S";
+    g.AddProduction("S", {"E", g.st_.EOL_});
+    g.AddProduction("E", {"a"});
+    g.AddProduction("E", {"b"});
+    
+    SLR1Parser slr1(g);
+    slr1.MakeInitialState();
+    
+    const auto& states = slr1.states_;
+    ASSERT_EQ(states.size(), 1);
+    
+    const auto& initial_state = *states.begin();
+    
+    std::unordered_set<Lr0Item> expected_items = {
+        {"S", {"E", g.st_.EOL_}, 0, g.st_.EPSILON_, g.st_.EOL_},
+        {"E", {"a"}, 0, g.st_.EOL_, g.st_.EOL_},
+        {"E", {"b"}, 0, g.st_.EOL_, g.st_.EOL_}
+    };
+    
+    EXPECT_EQ(initial_state.items_, expected_items);
+}
+
+TEST(SLR1_MakeInitialState, ComplexGrammarWithNullable) {
+    Grammar g;
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+    
+    g.axiom_ = "S";
+    g.AddProduction("S", {"A", "B", g.st_.EOL_});
+    g.AddProduction("A", {"a", "A"});
+    g.AddProduction("A", {g.st_.EPSILON_});
+    g.AddProduction("B", {"b", "B"});
+    g.AddProduction("B", {g.st_.EPSILON_});
+    
+    SLR1Parser slr1(g);
+    slr1.MakeInitialState();
+    
+    const auto& states = slr1.states_;
+    ASSERT_EQ(states.size(), 1);
+    
+    const auto& initial_state = *states.begin();
+    
+    std::unordered_set<Lr0Item> expected_items = {
+        {"S", {"A", "B", g.st_.EOL_}, 0, g.st_.EPSILON_, g.st_.EOL_},
+        {"A", {"a", "A"}, 0, "B", g.st_.EOL_},
+        {"A", {g.st_.EPSILON_}, 1, "B", g.st_.EOL_}
+    };
+    
+    EXPECT_EQ(initial_state.items_, expected_items);
+}
+
+TEST(SLR1_MakeInitialState, RecursiveGrammar) {
+    Grammar g;
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("E", false);
+    g.st_.PutSymbol("T", false);
+    g.st_.PutSymbol("+", true);
+    g.st_.PutSymbol("*", true);
+    g.st_.PutSymbol("n", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+    
+    g.axiom_ = "S";
+    g.AddProduction("S", {"E", g.st_.EOL_});
+    g.AddProduction("E", {"E", "+", "T"});
+    g.AddProduction("E", {"T"});
+    g.AddProduction("T", {"T", "*", "n"});
+    g.AddProduction("T", {"n"});
+    
+    SLR1Parser slr1(g);
+    slr1.MakeInitialState();
+    
+    const auto& states = slr1.states_;
+    ASSERT_EQ(states.size(), 1);
+    
+    const auto& initial_state = *states.begin();
+    
+    std::unordered_set<Lr0Item> expected_items = {
+        {"S", {"E", g.st_.EOL_}, 0, g.st_.EPSILON_, g.st_.EOL_},
+        {"E", {"E", "+", "T"}, 0, g.st_.EOL_, g.st_.EOL_},
+        {"E", {"T"}, 0, g.st_.EOL_, g.st_.EOL_},
+        {"T", {"T", "*", "n"}, 0, "+", g.st_.EOL_},
+        {"T", {"n"}, 0, "+", g.st_.EOL_}
+    };
+    
+    EXPECT_EQ(initial_state.items_, expected_items);
+}
+
+TEST(SLR1_MakeInitialState, StateIdAndUniqueness) {
+    Grammar g;
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+    
+    g.axiom_ = "S";
+    g.AddProduction("S", {"a", g.st_.EOL_});
+    
+    SLR1Parser slr1(g);
+    slr1.MakeInitialState();
+    
+    // Calling again should not create duplicate states
+    slr1.MakeInitialState();
+    
+    const auto& states = slr1.states_;
+    ASSERT_EQ(states.size(), 1);
+    
+    const auto& initial_state = *states.begin();
+    EXPECT_EQ(initial_state.id_, 0);
+    
+    // Verify the state is properly hashed and compared
+    state duplicate;
+    duplicate.id_ = 0;
+    duplicate.items_.emplace("S", std::vector<std::string>{"a", g.st_.EOL_}, 0, 
+                           g.st_.EPSILON_, g.st_.EOL_);
+    
+    EXPECT_TRUE(states.contains(duplicate));
+}
+
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
