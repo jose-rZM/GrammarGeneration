@@ -133,7 +133,7 @@ Grammar GrammarFactory::Lv3() {
     // STEP 3 Change non terminals in cmb to C ---------------------------
     std::unordered_map<std::string, std::vector<production>>
         cmb_updated_grammar;
-    cmb.st_.non_terminals_.insert("C");
+    cmb.st_.non_terminals_.emplace("C");
     for (auto& [nt, prods] : cmb.g_) {
         std::string new_nt = "C";
         for (auto& prod : prods) {
@@ -147,7 +147,7 @@ Grammar GrammarFactory::Lv3() {
         cmb_updated_grammar["C"] = prods;
     }
     cmb.g_ = std::move(cmb_updated_grammar);
-    cmb.st_.non_terminals_.insert("C");
+    cmb.st_.non_terminals_.emplace("C");
 
     // STEP 4 Change one base terminal to another that is not in cmb
     std::unordered_set<std::string> cmb_terminals = cmb.st_.terminals_wtho_eol_;
@@ -225,7 +225,7 @@ Grammar GrammarFactory::Lv4() {
     // STEP 3 Change non terminals in cmb to C ---------------------------
     std::unordered_map<std::string, std::vector<production>>
         cmb_updated_grammar;
-    cmb.st_.non_terminals_.insert("D");
+    cmb.st_.non_terminals_.emplace("D");
     for (auto& [nt, prods] : cmb.g_) {
         std::string new_nt = "D";
         for (auto& prod : prods) {
@@ -239,7 +239,7 @@ Grammar GrammarFactory::Lv4() {
         cmb_updated_grammar["D"] = prods;
     }
     cmb.g_ = std::move(cmb_updated_grammar);
-    cmb.st_.non_terminals_.insert("D");
+    cmb.st_.non_terminals_.emplace("D");
 
     // STEP 4 Change one base terminal to another that is not in cmb
     std::unordered_set<std::string> cmb_terminals = cmb.st_.terminals_wtho_eol_;
@@ -317,7 +317,7 @@ Grammar GrammarFactory::Lv5() {
     // STEP 3 Change non terminals in cmb to C ---------------------------
     std::unordered_map<std::string, std::vector<production>>
         cmb_updated_grammar;
-    cmb.st_.non_terminals_.insert("E");
+    cmb.st_.non_terminals_.emplace("E");
     for (auto& [nt, prods] : cmb.g_) {
         std::string new_nt = "E";
         for (auto& prod : prods) {
@@ -331,7 +331,7 @@ Grammar GrammarFactory::Lv5() {
         cmb_updated_grammar["E"] = prods;
     }
     cmb.g_ = std::move(cmb_updated_grammar);
-    cmb.st_.non_terminals_.insert("E");
+    cmb.st_.non_terminals_.emplace("E");
 
     // STEP 4 Change one base terminal to another that is not in cmb
     std::unordered_set<std::string> cmb_terminals = cmb.st_.terminals_wtho_eol_;
@@ -409,7 +409,7 @@ Grammar GrammarFactory::Lv6() {
     // STEP 3 Change non terminals in cmb to C ---------------------------
     std::unordered_map<std::string, std::vector<production>>
         cmb_updated_grammar;
-    cmb.st_.non_terminals_.insert("F");
+    cmb.st_.non_terminals_.emplace("F");
     for (auto& [nt, prods] : cmb.g_) {
         std::string new_nt = "F";
         for (auto& prod : prods) {
@@ -423,7 +423,7 @@ Grammar GrammarFactory::Lv6() {
         cmb_updated_grammar["F"] = prods;
     }
     cmb.g_ = std::move(cmb_updated_grammar);
-    cmb.st_.non_terminals_.insert("F");
+    cmb.st_.non_terminals_.emplace("F");
 
     // STEP 4 Change one base terminal to another that is not in cmb
     std::unordered_set<std::string> cmb_terminals = cmb.st_.terminals_wtho_eol_;
@@ -500,7 +500,7 @@ Grammar GrammarFactory::Lv7() {
     // STEP 3 Change non terminals in cmb to C ---------------------------
     std::unordered_map<std::string, std::vector<production>>
         cmb_updated_grammar;
-    cmb.st_.non_terminals_.insert("G");
+    cmb.st_.non_terminals_.emplace("G");
     for (auto& [nt, prods] : cmb.g_) {
         std::string new_nt = "G";
         for (auto& prod : prods) {
@@ -514,7 +514,7 @@ Grammar GrammarFactory::Lv7() {
         cmb_updated_grammar["G"] = prods;
     }
     cmb.g_ = std::move(cmb_updated_grammar);
-    cmb.st_.non_terminals_.insert("G");
+    cmb.st_.non_terminals_.emplace("G");
 
     // STEP 4 Change one base terminal to another that is not in cmb
     std::unordered_set<std::string> cmb_terminals = cmb.st_.terminals_wtho_eol_;
@@ -597,7 +597,7 @@ GrammarFactory::FactoryItem GrammarFactory::CreateLv2Item() {
     // --------------------------------------------
     std::unordered_map<std::string, std::vector<production>>
         cmb_updated_grammar;
-    cmb.st_.non_terminals_.insert("B");
+    cmb.st_.non_terminals_.emplace("B");
     for (auto& [nt, prods] : cmb.g_) {
         std::string new_nt = "B";
         for (auto& prod : prods) {
