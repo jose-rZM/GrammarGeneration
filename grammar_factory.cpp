@@ -674,7 +674,7 @@ GrammarFactory::FactoryItem GrammarFactory::CreateLv2Item() {
     return FactoryItem(combined_grammar);
 }
 
-bool GrammarFactory::HasUnreachableSymbols(Grammar& grammar) {
+bool GrammarFactory::HasUnreachableSymbols(Grammar& grammar) const {
     std::unordered_set<std::string> reachable;
     std::queue<std::string>         pending;
 
@@ -707,7 +707,7 @@ bool GrammarFactory::HasUnreachableSymbols(Grammar& grammar) {
     return false;
 }
 
-bool GrammarFactory::IsInfinite(Grammar& grammar) {
+bool GrammarFactory::IsInfinite(Grammar& grammar) const {
     std::unordered_set<std::string> generating;
     bool                            changed = true;
 
@@ -740,7 +740,7 @@ bool GrammarFactory::IsInfinite(Grammar& grammar) {
     return generating != grammar.st_.non_terminals_;
 }
 
-bool GrammarFactory::HasDirectLeftRecursion(const Grammar& grammar) {
+bool GrammarFactory::HasDirectLeftRecursion(const Grammar& grammar) const {
     for (const auto& [nt, prods] : grammar.g_) {
         for (const auto& prod : prods) {
             if (nt == prod[0]) {
@@ -777,7 +777,7 @@ bool GrammarFactory::HasIndirectLeftRecursion(Grammar& grammar) {
 
 bool GrammarFactory::HasCycle(
     const std::unordered_map<std::string, std::unordered_set<std::string>>&
-        graph) {
+        graph) const {
     std::unordered_map<std::string, int> in_degree;
     std::queue<std::string>              q;
 
@@ -813,7 +813,7 @@ bool GrammarFactory::HasCycle(
 }
 
 std::unordered_set<std::string>
-GrammarFactory::NullableSymbols(const Grammar& grammar) {
+GrammarFactory::NullableSymbols(const Grammar& grammar) const {
     std::unordered_set<std::string> nullable;
     bool                            changed;
 
@@ -961,7 +961,7 @@ void GrammarFactory::LeftFactorize(Grammar& grammar) {
 }
 
 std::vector<std::string> GrammarFactory::LongestCommonPrefix(
-    const std::vector<production>& productions) {
+    const std::vector<production>& productions) const {
     if (productions.empty() || productions.size() < 2) {
         return {};
     }
@@ -980,7 +980,7 @@ std::vector<std::string> GrammarFactory::LongestCommonPrefix(
 }
 
 bool GrammarFactory::StartsWith(const production&               prod,
-                                const std::vector<std::string>& prefix) {
+                                const std::vector<std::string>& prefix) const {
     if (prod.size() < prefix.size()) {
         return false;
     }
@@ -992,7 +992,7 @@ bool GrammarFactory::StartsWith(const production&               prod,
 }
 
 std::string GrammarFactory::GenerateNewNonTerminal(const Grammar&     grammar,
-                                                   const std::string& base) {
+                                                   const std::string& base) const {
     std::string nt = base;
     while (grammar.st_.non_terminals_.contains(nt)) {
         nt += "'";
@@ -1027,7 +1027,7 @@ bool GrammarFactory::FactoryItem::HasEmptyProduction(
            }) != std::ranges::end(rules);
 }
 
-void GrammarFactory::FactoryItem::Debug() {
+void GrammarFactory::FactoryItem::Debug() const {
     std::cout << "Grammar:\n";
     for (const auto& entry : g_) {
         std::cout << entry.first << " -> ";

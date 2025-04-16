@@ -50,7 +50,7 @@ struct GrammarFactory {
         /**
          * @brief Debugging function to print the grammar item.
          */
-        void Debug();
+        void Debug() const;
     };
 
     /**
@@ -173,7 +173,7 @@ struct GrammarFactory {
      * @param grammar The grammar to check.
      * @return true if there are unreachable symbols, false otherwise.
      */
-    bool HasUnreachableSymbols(Grammar& grammar);
+    bool HasUnreachableSymbols(Grammar& grammar) const;
 
     /**
      * @brief Checks if a grammar is infinite, meaning there are non-terminal
@@ -186,7 +186,7 @@ struct GrammarFactory {
      * @param grammar The grammar to check.
      * @return true if the grammar has infinite derivations, false otherwise.
      */
-    bool IsInfinite(Grammar& grammar);
+    bool IsInfinite(Grammar& grammar) const;
 
     /**
      * @brief Checks if a grammar contains direct left recursion (a non-terminal
@@ -194,7 +194,7 @@ struct GrammarFactory {
      * @param grammar The grammar to check.
      * @return true if there is direct left recursion, false otherwise.
      */
-    bool HasDirectLeftRecursion(const Grammar& grammar);
+    bool HasDirectLeftRecursion(const Grammar& grammar) const;
 
     /**
      * @brief Checks if a grammar contains indirect left recursion.
@@ -210,14 +210,14 @@ struct GrammarFactory {
      */
     bool
     HasCycle(const std::unordered_map<std::string,
-                                      std::unordered_set<std::string>>& graph);
+                                      std::unordered_set<std::string>>& graph) const;
 
     /**
      * @brief Find nullable symbols in a grammar.
      * @param grammar The grammar to check.
      * @return set of nullable symbols.
      */
-    std::unordered_set<std::string> NullableSymbols(const Grammar& grammar);
+    std::unordered_set<std::string> NullableSymbols(const Grammar& grammar) const;
 
     // -------- TRANSFORMATIONS --------
     /**
@@ -267,7 +267,7 @@ struct GrammarFactory {
      *         common prefix exists, an empty vector is returned.
      */
     std::vector<std::string>
-    LongestCommonPrefix(const std::vector<production>& productions);
+    LongestCommonPrefix(const std::vector<production>& productions) const;
 
     /**
      * @brief Checks if a production starts with a given prefix.
@@ -283,7 +283,7 @@ struct GrammarFactory {
      * otherwise.
      */
     bool StartsWith(const production&               prod,
-                    const std::vector<std::string>& prefix);
+                    const std::vector<std::string>& prefix) const;
 
     /**
      * @brief Generates a new non-terminal symbol that is unique in the grammar.
@@ -298,7 +298,7 @@ struct GrammarFactory {
      * @return A unique non-terminal symbol derived from the base name.
      */
     std::string GenerateNewNonTerminal(const Grammar&     grammar,
-                                       const std::string& base);
+                                       const std::string& base) const;
     /**
      * @brief A vector of FactoryItem objects representing different level 1
      * grammar items created by the Init method.
