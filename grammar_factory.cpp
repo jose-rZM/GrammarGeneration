@@ -714,7 +714,7 @@ bool GrammarFactory::IsInfinite(Grammar& grammar) {
     while (changed) {
         changed = false;
         for (const auto& [nt, productions] : grammar.g_) {
-            if (generating.find(nt) != generating.end()) {
+            if (generating.contains(nt)) {
                 continue;
             }
             for (const auto& prod : productions) {
@@ -966,7 +966,7 @@ std::vector<std::string> GrammarFactory::LongestCommonPrefix(
     }
 
     std::vector<production> sorted = productions;
-    std::sort(sorted.begin(), sorted.end());
+    std::ranges::sort(sorted);
     production& first      = sorted.front();
     production& last       = sorted.back();
     size_t      min_length = std::min(first.size(), last.size());
@@ -1019,11 +1019,13 @@ GrammarFactory::FactoryItem::FactoryItem(
 
 bool GrammarFactory::FactoryItem::HasEmptyProduction(
     const std::string& antecedent) {
-    auto& rules = g_.at(antecedent);
-    return std::find_if(rules.cbegin(), rules.cend(), [&](const auto& rule) {
-               return rule[0] == st_.EPSILON_;
-           }) != rules.cend();
+    auto const& rules = g_.at(antecedent);
+
+    return std::ranges::find_if(rules, [&](const auto& rule) {
+        return rule[0] == st_.EPSILON_;
+    }) != std::ranges::end(rules);
 }
+
 
 void GrammarFactory::FactoryItem::Debug() {
     std::cout << "Grammar:\n";
