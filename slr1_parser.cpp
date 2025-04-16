@@ -399,9 +399,8 @@ void SLR1Parser::ComputeFollowSets() {
     bool changed;
     do {
         changed = false;
-        for (const auto& rule : gr_.g_) {
-            const std::string& lhs = rule.first;
-            for (const production& rhs : rule.second) {
+        for (const auto& [lhs, productions] : gr_.g_) {
+            for (const production& rhs : productions) {
                 for (size_t i = 0; i < rhs.size(); ++i) {
                     const std::string& symbol = rhs[i];
                     if (!gr_.st_.IsTerminal(symbol)) {
