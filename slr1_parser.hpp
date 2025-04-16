@@ -213,6 +213,26 @@ class SLR1Parser {
     void ComputeFollowSets();
 
     /**
+     * @brief Updates the FOLLOW set for a non-terminal based on a production.
+     *
+     * This method updates the FOLLOW set of a given non-terminal symbol based
+     * on its position within a production. It considers:
+     * - The FIRST set of the remaining symbols after the current non-terminal.
+     * - The FOLLOW set of the left-hand side non-terminal, if the remaining
+     * symbols can derive ε.
+     *
+     * @param symbol The non-terminal symbol whose FOLLOW set is being updated.
+     * @param lhs The left-hand side non-terminal of the current production.
+     * @param rhs The production (right-hand side) containing the symbol.
+     * @param i The position of the symbol within the production.
+     *
+     * @return true if the FOLLOW set was modified (new elements were added),
+     * false otherwise.
+     */
+    bool UpdateFollow(const std::string& symbol, const std::string& lhs,
+                      const production& rhs, size_t i);
+
+    /**
      * @brief Computes the FOLLOW set for a given non-terminal symbol in the
      * grammar.
      *
