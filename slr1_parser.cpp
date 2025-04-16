@@ -261,19 +261,17 @@ bool SLR1Parser::MakeParser() {
 
             if (inserted) {
                 pending.push(i);
-                if (transitions_.find(current) != transitions_.end()) {
+                if (transitions_.contains(current)) {
                     transitions_[current].insert({symbol, i});
                 } else {
-                    std::map<std::string, unsigned int> column;
                     column.insert({symbol, i});
                     transitions_.insert({current, column});
                 }
                 ++i;
             } else {
-                if (transitions_.find(current) != transitions_.end()) {
+                if (transitions_.contains(current)) {
                     transitions_[current].insert({symbol, iterator->id_});
                 } else {
-                    std::map<std::string, unsigned int> column;
                     column.insert({symbol, iterator->id_});
                     transitions_.insert({current, column});
                 }
@@ -304,9 +302,7 @@ void SLR1Parser::ClosureUtil(std::unordered_set<Lr0Item>&     items,
         if (next == gr_.st_.EPSILON_) {
             continue;
         }
-        if (!gr_.st_.IsTerminal(next) &&
-            std::find(visited.cbegin(), visited.cend(), next) ==
-                visited.cend()) {
+        if (!gr_.st_.IsTerminal(next) && !visited.contains(next)) {
             const std::vector<production>& rules = gr_.g_.at(next);
             std::ranges::for_each(rules,
                           [&](const auto& rule) {
@@ -346,7 +342,7 @@ void SLR1Parser::First(std::span<const std::string>     rule,
         }
     }
 
-    if (fii.find(gr_.st_.EPSILON_) == fii.cend()) {
+    if (!fii.contains(gr_.st_.EPSILON_)) {
         return;
     }
     First(std::span<const std::string>(rule.begin() + 1, rule.end()), result);
@@ -368,7 +364,7 @@ void SLR1Parser::ComputeFirstSets() {
                 std::unordered_set<std::string> tempFirst;
                 First(prod, tempFirst);
 
-                if (tempFirst.find(gr_.st_.EOL_) != tempFirst.end()) {
+                if (tempFirst.contains(gr_.st_.EOL_)) {
                     tempFirst.erase(gr_.st_.EOL_);
                     tempFirst.insert(gr_.st_.EPSILON_);
                 }
