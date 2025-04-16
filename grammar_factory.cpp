@@ -690,7 +690,7 @@ bool GrammarFactory::HasUnreachableSymbols(Grammar& grammar) {
             for (const auto& production : it->second) {
                 for (const auto& symbol : production) {
                     if (!grammar.st_.IsTerminal(symbol) &&
-                        reachable.find(symbol) == reachable.end()) {
+                        !reachable.contains(symbol)) {
                         reachable.insert(symbol);
                         pending.push(symbol);
                     }
@@ -700,7 +700,7 @@ bool GrammarFactory::HasUnreachableSymbols(Grammar& grammar) {
     }
 
     for (const auto& nt : grammar.st_.non_terminals_) {
-        if (reachable.find(nt) == reachable.end()) {
+        if (!reachable.contains(nt)) {
             return true;
         }
     }
@@ -721,7 +721,7 @@ bool GrammarFactory::IsInfinite(Grammar& grammar) {
                 bool all_generating = true;
                 for (const auto& symbol : prod) {
                     if (!grammar.st_.IsTerminal(symbol) &&
-                        generating.find(symbol) == generating.end()) {
+                        !generating.contains(symbol)) {
                         all_generating = false;
                         break;
                     }
@@ -766,7 +766,7 @@ bool GrammarFactory::HasIndirectLeftRecursion(Grammar& grammar) {
                     break;
                 }
                 graph[nt].insert(prod[i]);
-                if (!nullable.count(prod[i])) {
+                if (!nullable.contains(prod[i])) {
                     break;
                 }
             }
@@ -821,7 +821,7 @@ GrammarFactory::NullableSymbols(Grammar& grammar) {
     do {
         changed = false;
         for (const auto& [nt, productions] : grammar.g_) {
-            if (nullable.count(nt)) {
+            if (nullable.contains(nt)) {
                 continue;
             }
             for (const production& prod : productions) {
@@ -831,7 +831,7 @@ GrammarFactory::NullableSymbols(Grammar& grammar) {
                 } else {
                     bool all_nullable = true;
                     for (const std::string& sym : prod) {
-                        if (!nullable.count(sym) && sym != grammar.st_.EOL_) {
+                        if (!nullable.contains(sym) && sym != grammar.st_.EOL_) {
                             all_nullable = false;
                             break;
                         }
@@ -993,8 +993,7 @@ bool GrammarFactory::StartsWith(const production&               prod,
 std::string GrammarFactory::GenerateNewNonTerminal(Grammar&           grammar,
                                                    const std::string& base) {
     std::string nt = base;
-    while (grammar.st_.non_terminals_.find(nt) !=
-           grammar.st_.non_terminals_.end()) {
+    while (grammar.st_.non_terminals_.contains(nt)) {
         nt += "'";
     }
     return nt;
