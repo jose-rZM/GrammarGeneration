@@ -6,6 +6,7 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
+#include <format>
 
 #include "grammar.hpp"
 #include "slr1_parser.hpp"
@@ -103,8 +104,7 @@ void SLR1Parser::DebugActions() {
                             if (trans_entry != transitions_.end()) {
                                 const auto shift_it = transitions.find(symbol);
                                 if (shift_it != transitions.end()) {
-                                    cell =
-                                        "S" + std::to_string(shift_it->second);
+                                    cell = std::format("S{}", shift_it->second);
                                 }
                             }
                             break;
