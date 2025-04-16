@@ -264,18 +264,18 @@ bool SLR1Parser::MakeParser() {
             if (inserted) {
                 pending.push(i);
                 if (transitions_.contains(current)) {
-                    transitions_[current].insert({symbol, i});
+                    transitions_[current].try_emplace(symbol, i);
                 } else {
-                    column.insert({symbol, i});
-                    transitions_.insert({current, column});
+                    column.try_emplace(symbol, i);
+                    transitions_.try_emplace(current, std::move(column));
                 }
                 ++i;
             } else {
                 if (transitions_.contains(current)) {
-                    transitions_[current].insert({symbol, iterator->id_});
+                    transitions_[current].try_emplace(symbol, iterator->id_);
                 } else {
-                    column.insert({symbol, iterator->id_});
-                    transitions_.insert({current, column});
+                    column.try_emplace(symbol, iterator->id_);
+                    transitions_.try_emplace(current, std::move(column));
                 }
             }
         }
