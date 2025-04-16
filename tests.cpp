@@ -2236,6 +2236,101 @@ TEST(SLR1_MakeInitialState, StateIdAndUniqueness) {
     EXPECT_TRUE(states.contains(duplicate));
 }
 
+TEST(SLR1_SolveLRConflicts, AcceptAction) {
+    Grammar g;
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+    
+    g.axiom_ = "S";
+    g.AddProduction("S", {"a", g.st_.EOL_});
+    
+    SLR1Parser slr1(g);
+    
+    state st;
+    st.id_ = 0;
+    st.items_.emplace("S", std::vector<std::string>{"a", g.st_.EOL_}, 2, 
+                     g.st_.EPSILON_, g.st_.EOL_); // Complete item
+    
+    EXPECT_TRUE(slr1.SolveLRConflicts(st));
+    EXPECT_EQ(slr1.actions_[0][g.st_.EOL_].action, SLR1Parser::Action::Accept);
+}
+
+TEST(SLR1_SolveLRConflicts, BasicReduce) {
+    Grammar g;
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("E", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+    
+    g.axiom_ = "S";
+    g.AddProduction("S", {"E", g.st_.EOL_});
+    g.AddProduction("E", {"a"});
+    
+        
+    SLR1Parser slr1(g);
+    slr1.ComputeFirstSets();
+    slr1.ComputeFollowSets();
+    state st;
+    st.id_ = 0;
+    st.items_.emplace("E", std::vector<std::string>{"a"}, 1, 
+                     g.st_.EPSILON_, g.st_.EOL_); // Complete item
+    
+    EXPECT_TRUE(slr1.SolveLRConflicts(st));
+    EXPECT_EQ(slr1.actions_[0][g.st_.EOL_].action, SLR1Parser::Action::Reduce);
+}
+
+TEST(SLR1_SolveLRConflicts, BasicShift) {
+    Grammar g;
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("E", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+    
+    g.axiom_ = "S";
+    g.AddProduction("S", {"E", g.st_.EOL_});
+    g.AddProduction("E", {"a"});
+    
+    SLR1Parser slr1(g);
+    
+    state st;
+    st.id_ = 0;
+    st.items_.emplace("E", std::vector<std::string>{"a"}, 0, 
+                     g.st_.EPSILON_, g.st_.EOL_); // Dot before terminal
+    
+    EXPECT_TRUE(slr1.SolveLRConflicts(st));
+    EXPECT_EQ(slr1.actions_[0]["a"].action, SLR1Parser::Action::Shift);
+}
+
+TEST(SLR1_SolveLRConflicts, ShiftReduceConflict) {
+    Grammar g;
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("E", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+    
+    g.axiom_ = "S";
+    g.AddProduction("S", {"E", g.st_.EOL_});
+    g.AddProduction("E", {"a"});
+    g.AddProduction("E", {"a", "E"}); // Shift-reduce conflict on 'a'
+    
+    
+    SLR1Parser slr1(g);
+    slr1.ComputeFirstSets();
+    slr1.ComputeFollowSets();
+
+    state st;
+    st.id_ = 0;
+    // Complete item (reduce on FOLLOW(E))
+    st.items_.emplace("E", std::vector<std::string>{"a"}, 1, 
+                     g.st_.EPSILON_, g.st_.EOL_);
+    // Incomplete item (shift on 'a')
+    st.items_.emplace("E", std::vector<std::string>{"a", "E"}, 0, 
+                     g.st_.EPSILON_, g.st_.EOL_);
+    
+    EXPECT_TRUE(slr1.SolveLRConflicts(st)); // Should NOT detect conflict
+}
+
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
