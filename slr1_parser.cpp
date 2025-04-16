@@ -16,10 +16,10 @@ SLR1Parser::SLR1Parser(Grammar gr) : gr_(std::move(gr)) {}
 
 std::unordered_set<Lr0Item> SLR1Parser::AllItems() const {
     std::unordered_set<Lr0Item> items;
-    for (const auto& rule : gr_.g_) {
-        for (const auto& production : rule.second) {
+    for (const auto& [lhs, productions] : gr_.g_) {
+        for (const auto& production : productions) {
             for (unsigned int i = 0; i <= production.size(); ++i)
-                items.insert({rule.first, production, i, gr_.st_.EPSILON_,
+                items.insert({lhs, production, i, gr_.st_.EPSILON_,
                               gr_.st_.EOL_});
         }
     }
@@ -255,10 +255,10 @@ bool SLR1Parser::MakeParser() {
             }
 
             Closure(newState.items_);
-            auto result = states_.insert(newState);
+            auto [iterator, inserted] = states_.insert(newState);
             std::map<std::string, unsigned int> column;
 
-            if (result.second) {
+            if (inserted) {
                 pending.push(i);
                 if (transitions_.find(current) != transitions_.end()) {
                     transitions_[current].insert({symbol, i});
@@ -270,10 +270,10 @@ bool SLR1Parser::MakeParser() {
                 ++i;
             } else {
                 if (transitions_.find(current) != transitions_.end()) {
-                    transitions_[current].insert({symbol, result.first->id_});
+                    transitions_[current].insert({symbol, iterator->id_});
                 } else {
                     std::map<std::string, unsigned int> column;
-                    column.insert({symbol, result.first->id_});
+                    column.insert({symbol, iterator->id_});
                     transitions_.insert({current, column});
                 }
             }
