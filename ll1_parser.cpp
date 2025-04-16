@@ -24,11 +24,10 @@ bool LL1Parser::CreateLL1Table() {
     size_t nrows{gr_.g_.size()};
     ll1_t_.reserve(nrows);
     bool has_conflict{false};
-    for (const auto& rule : gr_.g_) {
+    for (const auto& [lhs, productions] : gr_.g_) {
         std::unordered_map<std::string, std::vector<production>> column;
-        for (const production& p : rule.second) {
-            std::unordered_set<std::string> ds =
-                PredictionSymbols(rule.first, p);
+        for (const production& p : productions) {
+            std::unordered_set<std::string> ds = PredictionSymbols(lhs, p);
             column.reserve(ds.size());
             for (const std::string& symbol : ds) {
                 auto& cell = column[symbol];
@@ -38,7 +37,7 @@ bool LL1Parser::CreateLL1Table() {
                 cell.push_back(p);
             }
         }
-        ll1_t_.insert({rule.first, column});
+        ll1_t_.insert({lhs, column});
     }
     return !has_conflict;
 }
@@ -128,42 +127,41 @@ void LL1Parser::ComputeFollowSets() {
                 for (size_t i = 0; i < rhs.size(); ++i) {
                     const std::string& symbol = rhs[i];
                     if (!gr_.st_.IsTerminal(symbol)) {
-                        std::unordered_set<std::string> first_remaining;
-
-                        if (i + 1 < rhs.size()) {
-                            First(std::span<const std::string>(
-                                      rhs.begin() + i + 1, rhs.end()),
-                                  first_remaining);
-                        } else {
-                            first_remaining.insert(gr_.st_.EPSILON_);
-                        }
-
-                        for (const std::string& terminal : first_remaining) {
-                            if (terminal != gr_.st_.EPSILON_) {
-                                if (follow_sets_[symbol]
-                                        .insert(terminal)
-                                        .second) {
-                                    changed = true;
-                                }
-                            }
-                        }
-
-                        if (first_remaining.find(gr_.st_.EPSILON_) !=
-                            first_remaining.end()) {
-                            for (const std::string& terminal :
-                                 follow_sets_[lhs]) {
-                                if (follow_sets_[symbol]
-                                        .insert(terminal)
-                                        .second) {
-                                    changed = true;
-                                }
-                            }
-                        }
+                        changed |= UpdateFollow(symbol, lhs, rhs, i);
                     }
                 }
             }
         }
     } while (changed);
+}
+
+bool LL1Parser::UpdateFollow(const std::string& symbol, const std::string& lhs,
+                             const production& rhs, size_t i) {
+    bool changed = false;
+
+    std::unordered_set<std::string> first_remaining;
+    if (i + 1 < rhs.size()) {
+        First(std::span<const std::string>(rhs.begin() + i + 1, rhs.end()),
+              first_remaining);
+    } else {
+        first_remaining.insert(gr_.st_.EPSILON_);
+    }
+
+    // Add FIRST(β) \ {ε}
+    for (const auto& terminal : first_remaining) {
+        if (terminal != gr_.st_.EPSILON_) {
+            changed |= follow_sets_[symbol].insert(terminal).second;
+        }
+    }
+
+    // If FIRST(β) contains ε, add FOLLOW(lhs)
+    if (first_remaining.contains(gr_.st_.EPSILON_)) {
+        for (const auto& terminal : follow_sets_[lhs]) {
+            changed |= follow_sets_[symbol].insert(terminal).second;
+        }
+    }
+
+    return changed;
 }
 
 std::unordered_set<std::string> LL1Parser::Follow(const std::string& arg) {
