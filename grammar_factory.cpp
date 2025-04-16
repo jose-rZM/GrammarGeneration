@@ -129,25 +129,25 @@ Grammar GrammarFactory::Lv3() {
     std::mt19937                          gen(rd());
     std::uniform_int_distribution<size_t> dist(0, items.size() - 1);
     FactoryItem                           cmb = items.at(dist(gen));
+    std::string new_nt = "C";
 
     // STEP 3 Change non terminals in cmb to C ---------------------------
     std::unordered_map<std::string, std::vector<production>>
         cmb_updated_grammar;
-    cmb.st_.non_terminals_.emplace("C");
+    cmb.st_.non_terminals_.emplace(new_nt);
     for (auto& [nt, prods] : cmb.g_) {
-        std::string new_nt = "C";
         for (auto& prod : prods) {
             for (std::string& symbol : prod) {
                 if (!cmb.st_.IsTerminal(symbol)) {
-                    symbol = "C";
                     cmb.st_.non_terminals_.erase(symbol);
+                    symbol = new_nt;
                 }
             }
         }
-        cmb_updated_grammar["C"] = prods;
+        cmb_updated_grammar[new_nt] = prods;
     }
     cmb.g_ = std::move(cmb_updated_grammar);
-    cmb.st_.non_terminals_.emplace("C");
+    cmb.st_.non_terminals_.emplace(new_nt);
 
     // STEP 4 Change one base terminal to another that is not in cmb
     std::unordered_set<std::string> cmb_terminals = cmb.st_.terminals_wtho_eol_;
@@ -194,7 +194,7 @@ Grammar GrammarFactory::Lv3() {
         for (auto& prod : prods) {
             for (std::string& symbol : prod) {
                 if (symbol == terminal_to_replace) {
-                    symbol = "C";
+                    symbol = new_nt;
                 }
             }
         }
@@ -221,25 +221,25 @@ Grammar GrammarFactory::Lv4() {
     std::mt19937                          gen(rd());
     std::uniform_int_distribution<size_t> dist(0, items.size() - 1);
     FactoryItem                           cmb = items.at(dist(gen));
+    std::string new_nt = "D";
 
     // STEP 3 Change non terminals in cmb to C ---------------------------
     std::unordered_map<std::string, std::vector<production>>
         cmb_updated_grammar;
-    cmb.st_.non_terminals_.emplace("D");
+    cmb.st_.non_terminals_.emplace(new_nt);
     for (auto& [nt, prods] : cmb.g_) {
-        std::string new_nt = "D";
         for (auto& prod : prods) {
             for (std::string& symbol : prod) {
                 if (!cmb.st_.IsTerminal(symbol)) {
-                    symbol = "D";
                     cmb.st_.non_terminals_.erase(symbol);
+                    symbol = new_nt;
                 }
             }
         }
-        cmb_updated_grammar["D"] = prods;
+        cmb_updated_grammar[new_nt] = prods;
     }
     cmb.g_ = std::move(cmb_updated_grammar);
-    cmb.st_.non_terminals_.emplace("D");
+    cmb.st_.non_terminals_.emplace(new_nt);
 
     // STEP 4 Change one base terminal to another that is not in cmb
     std::unordered_set<std::string> cmb_terminals = cmb.st_.terminals_wtho_eol_;
@@ -286,7 +286,7 @@ Grammar GrammarFactory::Lv4() {
         for (auto& prod : prods) {
             for (std::string& symbol : prod) {
                 if (symbol == terminal_to_replace) {
-                    symbol = "D";
+                    symbol = new_nt;
                 }
             }
         }
@@ -313,25 +313,25 @@ Grammar GrammarFactory::Lv5() {
     std::mt19937                          gen(rd());
     std::uniform_int_distribution<size_t> dist(0, items.size() - 1);
     FactoryItem                           cmb = items.at(dist(gen));
+    std::string new_nt = "E";
 
     // STEP 3 Change non terminals in cmb to C ---------------------------
     std::unordered_map<std::string, std::vector<production>>
         cmb_updated_grammar;
-    cmb.st_.non_terminals_.emplace("E");
+    cmb.st_.non_terminals_.emplace(new_nt);
     for (auto& [nt, prods] : cmb.g_) {
-        std::string new_nt = "E";
         for (auto& prod : prods) {
             for (std::string& symbol : prod) {
                 if (!cmb.st_.IsTerminal(symbol)) {
-                    symbol = "E";
                     cmb.st_.non_terminals_.erase(symbol);
+                    symbol = new_nt;
                 }
             }
         }
-        cmb_updated_grammar["E"] = prods;
+        cmb_updated_grammar[new_nt] = prods;
     }
     cmb.g_ = std::move(cmb_updated_grammar);
-    cmb.st_.non_terminals_.emplace("E");
+    cmb.st_.non_terminals_.emplace(new_nt);
 
     // STEP 4 Change one base terminal to another that is not in cmb
     std::unordered_set<std::string> cmb_terminals = cmb.st_.terminals_wtho_eol_;
@@ -378,7 +378,7 @@ Grammar GrammarFactory::Lv5() {
         for (auto& prod : prods) {
             for (std::string& symbol : prod) {
                 if (symbol == terminal_to_replace) {
-                    symbol = "E";
+                    symbol = new_nt;
                 }
             }
         }
@@ -405,25 +405,25 @@ Grammar GrammarFactory::Lv6() {
     std::mt19937                          gen(rd());
     std::uniform_int_distribution<size_t> dist(0, items.size() - 1);
     FactoryItem                           cmb = items.at(dist(gen));
+    std::string new_nt = "F";
 
     // STEP 3 Change non terminals in cmb to C ---------------------------
     std::unordered_map<std::string, std::vector<production>>
         cmb_updated_grammar;
-    cmb.st_.non_terminals_.emplace("F");
+    cmb.st_.non_terminals_.emplace(new_nt);
     for (auto& [nt, prods] : cmb.g_) {
-        std::string new_nt = "F";
         for (auto& prod : prods) {
             for (std::string& symbol : prod) {
                 if (!cmb.st_.IsTerminal(symbol)) {
-                    symbol = "F";
                     cmb.st_.non_terminals_.erase(symbol);
+                    symbol = new_nt;
                 }
             }
         }
-        cmb_updated_grammar["F"] = prods;
+        cmb_updated_grammar[new_nt] = prods;
     }
     cmb.g_ = std::move(cmb_updated_grammar);
-    cmb.st_.non_terminals_.emplace("F");
+    cmb.st_.non_terminals_.emplace(new_nt);
 
     // STEP 4 Change one base terminal to another that is not in cmb
     std::unordered_set<std::string> cmb_terminals = cmb.st_.terminals_wtho_eol_;
@@ -470,7 +470,7 @@ Grammar GrammarFactory::Lv6() {
         for (auto& prod : prods) {
             for (std::string& symbol : prod) {
                 if (symbol == terminal_to_replace) {
-                    symbol = "F";
+                    symbol = new_nt;
                 }
             }
         }
@@ -496,25 +496,25 @@ Grammar GrammarFactory::Lv7() {
     std::mt19937                          gen(rd());
     std::uniform_int_distribution<size_t> dist(0, items.size() - 1);
     FactoryItem                           cmb = items.at(dist(gen));
+    std::string new_nt = "G";
 
     // STEP 3 Change non terminals in cmb to C ---------------------------
     std::unordered_map<std::string, std::vector<production>>
         cmb_updated_grammar;
-    cmb.st_.non_terminals_.emplace("G");
+    cmb.st_.non_terminals_.emplace(new_nt);
     for (auto& [nt, prods] : cmb.g_) {
-        std::string new_nt = "G";
         for (auto& prod : prods) {
             for (std::string& symbol : prod) {
                 if (!cmb.st_.IsTerminal(symbol)) {
-                    symbol = "G";
                     cmb.st_.non_terminals_.erase(symbol);
+                    symbol = new_nt;
                 }
             }
         }
-        cmb_updated_grammar["G"] = prods;
+        cmb_updated_grammar[new_nt] = prods;
     }
     cmb.g_ = std::move(cmb_updated_grammar);
-    cmb.st_.non_terminals_.emplace("G");
+    cmb.st_.non_terminals_.emplace(new_nt);
 
     // STEP 4 Change one base terminal to another that is not in cmb
     std::unordered_set<std::string> cmb_terminals = cmb.st_.terminals_wtho_eol_;
@@ -561,7 +561,7 @@ Grammar GrammarFactory::Lv7() {
         for (auto& prod : prods) {
             for (std::string& symbol : prod) {
                 if (symbol == terminal_to_replace) {
-                    symbol = "G";
+                    symbol = new_nt;
                 }
             }
         }
@@ -593,22 +593,22 @@ GrammarFactory::FactoryItem GrammarFactory::CreateLv2Item() {
     }
     // -----------------------------------------------------
 
+    std::string new_nt = "B";
     // STEP 3 Change non terminals in cmb to B
     // --------------------------------------------
     std::unordered_map<std::string, std::vector<production>>
         cmb_updated_grammar;
-    cmb.st_.non_terminals_.emplace("B");
+    cmb.st_.non_terminals_.emplace(new_nt);
     for (auto& [nt, prods] : cmb.g_) {
-        std::string new_nt = "B";
         for (auto& prod : prods) {
             for (std::string& symbol : prod) {
                 if (!cmb.st_.IsTerminal(symbol)) {
-                    symbol = "B";
+                    symbol = new_nt;
                     cmb.st_.non_terminals_.erase(symbol);
                 }
             }
         }
-        cmb_updated_grammar["B"] = prods;
+        cmb_updated_grammar[new_nt] = prods;
     }
     cmb.g_ = std::move(cmb_updated_grammar);
     // -----------------------------------------------------
@@ -658,7 +658,7 @@ GrammarFactory::FactoryItem GrammarFactory::CreateLv2Item() {
         for (auto& prod : prods) {
             for (std::string& symbol : prod) {
                 if (symbol == terminal_to_replace) {
-                    symbol = "B";
+                    symbol = new_nt;
                 }
             }
         }
