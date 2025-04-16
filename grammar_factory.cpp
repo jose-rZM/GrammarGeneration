@@ -128,8 +128,8 @@ Grammar GrammarFactory::Lv3() {
     std::random_device                    rd;
     std::mt19937                          gen(rd());
     std::uniform_int_distribution<size_t> dist(0, items.size() - 1);
-    FactoryItem                           cmb = items.at(dist(gen));
-    std::string new_nt = "C";
+    FactoryItem                           cmb    = items.at(dist(gen));
+    std::string                           new_nt = "C";
 
     // STEP 3 Change non terminals in cmb to C ---------------------------
     std::unordered_map<std::string, std::vector<production>>
@@ -220,8 +220,8 @@ Grammar GrammarFactory::Lv4() {
     std::random_device                    rd;
     std::mt19937                          gen(rd());
     std::uniform_int_distribution<size_t> dist(0, items.size() - 1);
-    FactoryItem                           cmb = items.at(dist(gen));
-    std::string new_nt = "D";
+    FactoryItem                           cmb    = items.at(dist(gen));
+    std::string                           new_nt = "D";
 
     // STEP 3 Change non terminals in cmb to C ---------------------------
     std::unordered_map<std::string, std::vector<production>>
@@ -312,8 +312,8 @@ Grammar GrammarFactory::Lv5() {
     std::random_device                    rd;
     std::mt19937                          gen(rd());
     std::uniform_int_distribution<size_t> dist(0, items.size() - 1);
-    FactoryItem                           cmb = items.at(dist(gen));
-    std::string new_nt = "E";
+    FactoryItem                           cmb    = items.at(dist(gen));
+    std::string                           new_nt = "E";
 
     // STEP 3 Change non terminals in cmb to C ---------------------------
     std::unordered_map<std::string, std::vector<production>>
@@ -404,8 +404,8 @@ Grammar GrammarFactory::Lv6() {
     std::random_device                    rd;
     std::mt19937                          gen(rd());
     std::uniform_int_distribution<size_t> dist(0, items.size() - 1);
-    FactoryItem                           cmb = items.at(dist(gen));
-    std::string new_nt = "F";
+    FactoryItem                           cmb    = items.at(dist(gen));
+    std::string                           new_nt = "F";
 
     // STEP 3 Change non terminals in cmb to C ---------------------------
     std::unordered_map<std::string, std::vector<production>>
@@ -495,8 +495,8 @@ Grammar GrammarFactory::Lv7() {
     std::random_device                    rd;
     std::mt19937                          gen(rd());
     std::uniform_int_distribution<size_t> dist(0, items.size() - 1);
-    FactoryItem                           cmb = items.at(dist(gen));
-    std::string new_nt = "G";
+    FactoryItem                           cmb    = items.at(dist(gen));
+    std::string                           new_nt = "G";
 
     // STEP 3 Change non terminals in cmb to C ---------------------------
     std::unordered_map<std::string, std::vector<production>>
@@ -740,7 +740,7 @@ bool GrammarFactory::IsInfinite(Grammar& grammar) {
     return generating != grammar.st_.non_terminals_;
 }
 
-bool GrammarFactory::HasDirectLeftRecursion(Grammar& grammar) {
+bool GrammarFactory::HasDirectLeftRecursion(const Grammar& grammar) {
     for (const auto& [nt, prods] : grammar.g_) {
         for (const auto& prod : prods) {
             if (nt == prod[0]) {
@@ -813,7 +813,7 @@ bool GrammarFactory::HasCycle(
 }
 
 std::unordered_set<std::string>
-GrammarFactory::NullableSymbols(Grammar& grammar) {
+GrammarFactory::NullableSymbols(const Grammar& grammar) {
     std::unordered_set<std::string> nullable;
     bool                            changed;
 
@@ -831,7 +831,8 @@ GrammarFactory::NullableSymbols(Grammar& grammar) {
                 } else {
                     bool all_nullable = true;
                     for (const std::string& sym : prod) {
-                        if (!nullable.contains(sym) && sym != grammar.st_.EOL_) {
+                        if (!nullable.contains(sym) &&
+                            sym != grammar.st_.EOL_) {
                             all_nullable = false;
                             break;
                         }
@@ -990,7 +991,7 @@ bool GrammarFactory::StartsWith(const production&               prod,
     return i == prefix.size();
 }
 
-std::string GrammarFactory::GenerateNewNonTerminal(Grammar&           grammar,
+std::string GrammarFactory::GenerateNewNonTerminal(const Grammar&     grammar,
                                                    const std::string& base) {
     std::string nt = base;
     while (grammar.st_.non_terminals_.contains(nt)) {
@@ -1022,10 +1023,9 @@ bool GrammarFactory::FactoryItem::HasEmptyProduction(
     auto const& rules = g_.at(antecedent);
 
     return std::ranges::find_if(rules, [&](const auto& rule) {
-        return rule[0] == st_.EPSILON_;
-    }) != std::ranges::end(rules);
+               return rule[0] == st_.EPSILON_;
+           }) != std::ranges::end(rules);
 }
-
 
 void GrammarFactory::FactoryItem::Debug() {
     std::cout << "Grammar:\n";

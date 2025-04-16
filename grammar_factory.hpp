@@ -194,7 +194,7 @@ struct GrammarFactory {
      * @param grammar The grammar to check.
      * @return true if there is direct left recursion, false otherwise.
      */
-    bool HasDirectLeftRecursion(Grammar& grammar);
+    bool HasDirectLeftRecursion(const Grammar& grammar);
 
     /**
      * @brief Checks if a grammar contains indirect left recursion.
@@ -217,7 +217,7 @@ struct GrammarFactory {
      * @param grammar The grammar to check.
      * @return set of nullable symbols.
      */
-    std::unordered_set<std::string> NullableSymbols(Grammar& grammar);
+    std::unordered_set<std::string> NullableSymbols(const Grammar& grammar);
 
     // -------- TRANSFORMATIONS --------
     /**
@@ -297,7 +297,7 @@ struct GrammarFactory {
      * @param base The base name for the new non-terminal.
      * @return A unique non-terminal symbol derived from the base name.
      */
-    std::string GenerateNewNonTerminal(Grammar&           grammar,
+    std::string GenerateNewNonTerminal(const Grammar&     grammar,
                                        const std::string& base);
     /**
      * @brief A vector of FactoryItem objects representing different level 1
