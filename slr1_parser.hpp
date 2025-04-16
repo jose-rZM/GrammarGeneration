@@ -126,7 +126,7 @@ class SLR1Parser {
      * iteration.
      * @param visited A set of non-terminals that have already been processed.
      */
-    void ClosureUtil(std::unordered_set<Lr0Item>& items, unsigned int size,
+    void ClosureUtil(std::unordered_set<Lr0Item>& items, size_t size,
                      std::unordered_set<std::string>& visited);
 
     /**
