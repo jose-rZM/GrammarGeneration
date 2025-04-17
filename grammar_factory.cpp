@@ -71,23 +71,26 @@ Grammar GrammarFactory::PickOne(int level) {
 }
 
 Grammar GrammarFactory::GenLL1Grammar(int level) {
-    Grammar   gr = PickOne(level);
-    LL1Parser ll1(gr);
-    while (IsInfinite(gr) || HasUnreachableSymbols(gr) ||
-           HasDirectLeftRecursion(gr) || !ll1.CreateLL1Table()) {
+    while (true) {
+        Grammar   gr = PickOne(level);
+        LL1Parser ll1(gr);
+        if (!IsInfinite(gr) && !HasUnreachableSymbols(gr) &&
+            !HasDirectLeftRecursion(gr) && ll1.CreateLL1Table()) {
+            return gr;
+        }
+
         RemoveLeftRecursion(gr);
         ll1 = LL1Parser(gr);
         if (ll1.CreateLL1Table()) {
-            break;
+            return gr;
         }
+
         LeftFactorize(gr);
         ll1 = LL1Parser(gr);
         if (ll1.CreateLL1Table()) {
-            break;
+            return gr;
         }
-        gr = PickOne(level);
     }
-    return gr;
 }
 
 Grammar GrammarFactory::GenSLR1Grammar(int level) {
@@ -699,12 +702,9 @@ bool GrammarFactory::HasUnreachableSymbols(Grammar& grammar) const {
         }
     }
 
-    for (const auto& nt : grammar.st_.non_terminals_) {
-        if (!reachable.contains(nt)) {
-            return true;
-        }
-    }
-    return false;
+    return std::ranges::any_of(
+        grammar.st_.non_terminals_,
+        [&reachable](const auto& nt) { return !reachable.contains(nt); });
 }
 
 bool GrammarFactory::IsInfinite(Grammar& grammar) const {
@@ -859,7 +859,7 @@ void GrammarFactory::RemoveLeftRecursion(Grammar& grammar) {
         std::string new_non_terminal = GenerateNewNonTerminal(grammar, nt);
         for (const auto& prod : productions) {
             if (!prod.empty() && prod[0] == nt) {
-                alpha.push_back({prod.begin() + 1, prod.end()});
+                alpha.emplace_back(prod.begin() + 1, prod.end());
             } else {
                 if (prod[0] == grammar.st_.EPSILON_) {
                     continue;
@@ -869,7 +869,7 @@ void GrammarFactory::RemoveLeftRecursion(Grammar& grammar) {
         }
         if (!alpha.empty()) {
             if (beta.empty()) {
-                beta.push_back({});
+                beta.emplace_back();
             }
             for (auto& b : beta) {
                 b.push_back(new_non_terminal);
