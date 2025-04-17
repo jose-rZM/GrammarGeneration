@@ -21,8 +21,8 @@ Grammar::Grammar(
         }
     }
     axiom_ = "S";
-    g_     = std::move(grammar);
-    if (g_.find(axiom_) == g_.end()) {
+    g_     = grammar;
+    if (!g_.contains(axiom_)) {
         // S -> firstNonTerminal $
         g_[axiom_] = {{*st_.non_terminals_.begin(), st_.EOL_}};
         st_.PutSymbol(axiom_, false);
@@ -35,7 +35,7 @@ void Grammar::SetAxiom(const std::string& axiom) {
 
 bool Grammar::HasEmptyProduction(const std::string& antecedent) {
     auto rules{g_.at(antecedent)};
-    return std::find_if(rules.cbegin(), rules.cend(), [&](const auto& rule) {
+    return std::ranges::find_if(rules, [&](const auto& rule) {
                return rule[0] == st_.EPSILON_;
            }) != rules.cend();
 }
@@ -43,10 +43,10 @@ bool Grammar::HasEmptyProduction(const std::string& antecedent) {
 std::vector<std::pair<const std::string, production>>
 Grammar::FilterRulesByConsequent(const std::string& arg) {
     std::vector<std::pair<const std::string, production>> rules;
-    for (const auto& rule : g_) {
-        for (const production& prod : rule.second) {
-            if (std::find(prod.cbegin(), prod.cend(), arg) != prod.cend()) {
-                rules.emplace_back(rule.first, prod);
+    for (const auto& [lhs, productions] : g_) {
+        for (const production& prod : productions) {
+            if (std::ranges::find(prod, arg) != prod.cend()) {
+                rules.emplace_back(lhs, prod);
             }
         }
     }
@@ -69,13 +69,13 @@ void Grammar::Debug() {
     std::cout << "\n";
 
     std::vector<std::string> non_terminals;
-    for (const auto& entry : g_) {
-        if (entry.first != axiom_) {
-            non_terminals.push_back(entry.first);
+    for (const auto& [lhs, _] : g_) {
+        if (lhs != axiom_) {
+            non_terminals.push_back(lhs);
         }
     }
 
-    std::sort(non_terminals.begin(), non_terminals.end());
+    std::ranges::sort(non_terminals);
 
     for (const std::string& nt : non_terminals) {
         std::cout << nt << " -> ";
@@ -99,5 +99,5 @@ bool Grammar::HasLeftRecursion(const std::string&              antecedent,
 
 void Grammar::AddProduction(const std::string&              antecedent,
                             const std::vector<std::string>& consequent) {
-    g_[antecedent].push_back(std::move(consequent));
+    g_[antecedent].push_back(consequent);
 }
