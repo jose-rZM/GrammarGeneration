@@ -20,8 +20,8 @@ std::unordered_set<Lr0Item> SLR1Parser::AllItems() const {
     for (const auto& [lhs, productions] : gr_.g_) {
         for (const auto& production : productions) {
             for (unsigned int i = 0; i <= production.size(); ++i)
-                items.emplace(
-                    lhs, production, i, gr_.st_.EPSILON_, gr_.st_.EOL_);
+                items.emplace(lhs, production, i, gr_.st_.EPSILON_,
+                              gr_.st_.EOL_);
         }
     }
     return items;
@@ -80,9 +80,10 @@ void SLR1Parser::DebugActions() {
         const auto  trans_entry  = transitions_.find(state);
         const auto& transitions  = trans_entry->second;
         for (const auto& symbol : columns) {
-            std::string cell        = "-";
+            std::string cell = "-";
 
-            if (const bool  is_terminal = gr_.st_.IsTerminal(symbol); !is_terminal) {
+            if (const bool is_terminal = gr_.st_.IsTerminal(symbol);
+                !is_terminal) {
                 if (trans_entry != transitions_.end()) {
                     const auto it = transitions.find(symbol);
                     if (it != transitions.end()) {
@@ -161,8 +162,8 @@ void SLR1Parser::MakeInitialState() {
     initial.id_ = 0;
     auto axiom  = gr_.g_.at(gr_.axiom_);
     // the axiom must be unique
-    initial.items_.emplace(
-        gr_.axiom_, axiom[0], gr_.st_.EPSILON_, gr_.st_.EOL_);
+    initial.items_.emplace(gr_.axiom_, axiom[0], gr_.st_.EPSILON_,
+                           gr_.st_.EOL_);
     Closure(initial.items_);
     states_.insert(initial);
 }
@@ -178,7 +179,8 @@ bool SLR1Parser::SolveLRConflicts(const state& st) {
                 std::unordered_set<std::string> follows =
                     Follow(item.antecedent_);
                 for (const std::string& sym : follows) {
-                    if (auto it = actions_[st.id_].find(sym); it != actions_[st.id_].end()) {
+                    if (auto it = actions_[st.id_].find(sym);
+                        it != actions_[st.id_].end()) {
                         // Si ya hay un Reduce, comparar las reglas.
                         // REDUCE/REDUCE si reglas distintas
                         if (it->second.action == Action::Reduce) {
@@ -199,7 +201,8 @@ bool SLR1Parser::SolveLRConflicts(const state& st) {
             // Regla 1: Si hay un terminal después del punto, hacemos SHIFT
             std::string nextToDot = item.NextToDot();
             if (gr_.st_.IsTerminal(nextToDot)) {
-                if (auto it = actions_[st.id_].find(nextToDot); it != actions_[st.id_].end()) {
+                if (auto it = actions_[st.id_].find(nextToDot);
+                    it != actions_[st.id_].end()) {
                     // Si hay una acción previa, hay conflicto si es REDUCE
                     if (it->second.action == Action::Reduce) {
                         return false;
@@ -227,10 +230,8 @@ bool SLR1Parser::MakeParser() {
         std::unordered_set<std::string> nextSymbols;
         current = pending.front();
         pending.pop();
-        auto it =
-            std::ranges::find_if(states_, [current](const state& st) {
-                return st.id_ == current;
-            });
+        auto it = std::ranges::find_if(
+            states_, [current](const state& st) { return st.id_ == current; });
         if (it == states_.end()) {
             break;
         }
@@ -283,9 +284,8 @@ bool SLR1Parser::MakeParser() {
             return false;
         }
     }
-    return std::ranges::all_of(states_, [this](const state& st) {
-        return SolveLRConflicts(st);
-    });
+    return std::ranges::all_of(
+        states_, [this](const state& st) { return SolveLRConflicts(st); });
 }
 
 void SLR1Parser::Closure(std::unordered_set<Lr0Item>& items) {
@@ -294,7 +294,7 @@ void SLR1Parser::Closure(std::unordered_set<Lr0Item>& items) {
 }
 
 void SLR1Parser::ClosureUtil(std::unordered_set<Lr0Item>&     items,
-                             std::size_t                     size,
+                             std::size_t                      size,
                              std::unordered_set<std::string>& visited) {
     std::unordered_set<Lr0Item> newItems;
 

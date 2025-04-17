@@ -1,17 +1,16 @@
 #include "grammar.hpp"
 #include "grammar_factory.hpp"
 #include "ll1_parser.hpp"
+#include "slr1_parser.hpp"
 #include <algorithm>
 #include <gtest/gtest.h>
-#include "slr1_parser.hpp"
 namespace testing {
-    namespace internal {
-    template<>
-    void PrintTo(const Lr0Item& item, std::ostream* os) {
-        *os << item.ToString();
-    }
-    }  // namespace internal
-    }  // namespace testing
+namespace internal {
+template <> void PrintTo(const Lr0Item& item, std::ostream* os) {
+    *os << item.ToString();
+}
+} // namespace internal
+} // namespace testing
 
 void SortProductions(Grammar& grammar) {
     for (auto& [nt, productions] : grammar.g_) {
@@ -1790,31 +1789,29 @@ TEST(SLR1_ClosureTest, BasicClosure) {
     g.st_.PutSymbol("+", true);
     g.st_.PutSymbol("n", true);
     g.st_.PutSymbol(g.st_.EPSILON_, true);
-    
+
     g.axiom_ = "S";
-    
+
     g.AddProduction("S", {"E", g.st_.EOL_});
     g.AddProduction("E", {"E", "+", "T"});
     g.AddProduction("E", {"T"});
     g.AddProduction("T", {"n"});
-    
+
     SLR1Parser slr1(g);
-    
+
     // Initial item: S -> •E EOL
     std::unordered_set<Lr0Item> items = {
-        {"S", {"E", g.st_.EOL_}, g.st_.EPSILON_, g.st_.EOL_}
-    };
-    
+        {"S", {"E", g.st_.EOL_}, g.st_.EPSILON_, g.st_.EOL_}};
+
     slr1.Closure(items);
-    
+
     // Expected items after closure
     std::unordered_set<Lr0Item> expected = {
         {"S", {"E", g.st_.EOL_}, g.st_.EPSILON_, g.st_.EOL_},
         {"E", {"E", "+", "T"}, g.st_.EPSILON_, g.st_.EOL_},
         {"E", {"T"}, g.st_.EPSILON_, g.st_.EOL_},
-        {"T", {"n"}, g.st_.EPSILON_, g.st_.EOL_}
-    };
-    
+        {"T", {"n"}, g.st_.EPSILON_, g.st_.EOL_}};
+
     EXPECT_EQ(items, expected);
 }
 
@@ -1829,9 +1826,9 @@ TEST(SLR1_ClosureTest, ComplexGrammarWithNullable) {
     g.st_.PutSymbol("b", true);
     g.st_.PutSymbol("c", true);
     g.st_.PutSymbol(g.st_.EPSILON_, true);
-    
+
     g.axiom_ = "S";
-    
+
     g.AddProduction("S", {"D", g.st_.EOL_});
     g.AddProduction("D", {"A", "B", "C"});
     g.AddProduction("A", {"a", "A"});
@@ -1840,22 +1837,20 @@ TEST(SLR1_ClosureTest, ComplexGrammarWithNullable) {
     g.AddProduction("B", {g.st_.EPSILON_});
     g.AddProduction("C", {"c", "C"});
     g.AddProduction("C", {g.st_.EPSILON_});
-    
+
     SLR1Parser slr1(g);
-    
+
     std::unordered_set<Lr0Item> items = {
-        {"S", {"D", g.st_.EOL_}, g.st_.EPSILON_, g.st_.EOL_}
-    };
-    
+        {"S", {"D", g.st_.EOL_}, g.st_.EPSILON_, g.st_.EOL_}};
+
     slr1.Closure(items);
-    
+
     std::unordered_set<Lr0Item> expected = {
         {"S", {"D", g.st_.EOL_}, g.st_.EPSILON_, g.st_.EOL_},
         {"D", {"A", "B", "C"}, g.st_.EPSILON_, g.st_.EOL_},
         {"A", {"a", "A"}, g.st_.EPSILON_, g.st_.EOL_},
-        {"A", {g.st_.EPSILON_}, g.st_.EPSILON_, g.st_.EOL_}
-    };
-    
+        {"A", {g.st_.EPSILON_}, g.st_.EPSILON_, g.st_.EOL_}};
+
     EXPECT_EQ(items, expected);
 }
 
@@ -1864,23 +1859,21 @@ TEST(SLR1_ClosureTest, NoAdditionalClosureNeeded) {
     g.st_.PutSymbol("S", false);
     g.st_.PutSymbol("a", true);
     g.st_.PutSymbol(g.st_.EPSILON_, true);
-    
+
     g.axiom_ = "S";
-    
+
     g.AddProduction("S", {"a", g.st_.EOL_});
-    
+
     SLR1Parser slr1(g);
-    
+
     std::unordered_set<Lr0Item> items = {
-        {"S", {"a", g.st_.EOL_}, g.st_.EPSILON_, g.st_.EOL_}
-    };
-    
+        {"S", {"a", g.st_.EOL_}, g.st_.EPSILON_, g.st_.EOL_}};
+
     slr1.Closure(items);
-    
+
     std::unordered_set<Lr0Item> expected = {
-        {"S", {"a", g.st_.EOL_}, g.st_.EPSILON_, g.st_.EOL_}
-    };
-    
+        {"S", {"a", g.st_.EOL_}, g.st_.EPSILON_, g.st_.EOL_}};
+
     EXPECT_EQ(items, expected);
 }
 
@@ -1892,28 +1885,26 @@ TEST(SLR1_ClosureTest, DotInMiddleOfProduction) {
     g.st_.PutSymbol("+", true);
     g.st_.PutSymbol("n", true);
     g.st_.PutSymbol(g.st_.EPSILON_, true);
-    
+
     g.axiom_ = "S";
-    
+
     g.AddProduction("S", {"E", g.st_.EOL_});
     g.AddProduction("E", {"E", "+", "T"});
     g.AddProduction("E", {"T"});
     g.AddProduction("T", {"n"});
-    
+
     SLR1Parser slr1(g);
-    
+
     // Initial item: E -> E • + T
     std::unordered_set<Lr0Item> items = {
-        {"E", {"E", "+", "T"}, 1, g.st_.EPSILON_, g.st_.EOL_}
-    };
-    
+        {"E", {"E", "+", "T"}, 1, g.st_.EPSILON_, g.st_.EOL_}};
+
     slr1.Closure(items);
-    
+
     // Should not add any new items since the dot is before a terminal
     std::unordered_set<Lr0Item> expected = {
-        {"E", {"E", "+", "T"}, 1, g.st_.EPSILON_, g.st_.EOL_}
-    };
-    
+        {"E", {"E", "+", "T"}, 1, g.st_.EPSILON_, g.st_.EOL_}};
+
     EXPECT_EQ(items, expected);
 }
 
@@ -1925,28 +1916,26 @@ TEST(SLR1_ClosureTest, DotBeforeNonTerminal) {
     g.st_.PutSymbol("a", true);
     g.st_.PutSymbol("b", true);
     g.st_.PutSymbol(g.st_.EPSILON_, true);
-    
+
     g.axiom_ = "S";
-    
+
     g.AddProduction("S", {"A", "B", g.st_.EOL_});
     g.AddProduction("A", {"a"});
     g.AddProduction("B", {"b"});
-    
+
     SLR1Parser slr1(g);
-    
+
     // Initial item: S -> A • B EOL
     std::unordered_set<Lr0Item> items = {
-        {"S", {"A", "B", g.st_.EOL_}, 1, g.st_.EPSILON_, g.st_.EOL_}
-    };
-    
+        {"S", {"A", "B", g.st_.EOL_}, 1, g.st_.EPSILON_, g.st_.EOL_}};
+
     slr1.Closure(items);
-    
+
     // Should add productions for B since dot is before a non-terminal
     std::unordered_set<Lr0Item> expected = {
         {"S", {"A", "B", g.st_.EOL_}, 1, g.st_.EPSILON_, g.st_.EOL_},
-        {"B", {"b"}, 0, g.st_.EPSILON_, g.st_.EOL_}
-    };
-    
+        {"B", {"b"}, 0, g.st_.EPSILON_, g.st_.EOL_}};
+
     EXPECT_EQ(items, expected);
 }
 
@@ -1962,9 +1951,9 @@ TEST(SLR1_ClosureTest, MultipleItemsWithDifferentDotPositions) {
     g.st_.PutSymbol("(", true);
     g.st_.PutSymbol(")", true);
     g.st_.PutSymbol(g.st_.EPSILON_, true);
-    
+
     g.axiom_ = "S";
-    
+
     g.AddProduction("S", {"E", g.st_.EOL_});
     g.AddProduction("E", {"E", "+", "T"});
     g.AddProduction("E", {"T"});
@@ -1972,18 +1961,18 @@ TEST(SLR1_ClosureTest, MultipleItemsWithDifferentDotPositions) {
     g.AddProduction("T", {"F"});
     g.AddProduction("F", {"(", "E", ")"});
     g.AddProduction("F", {"n"});
-    
+
     SLR1Parser slr1(g);
-    
+
     // Initial items with dots in different positions
     std::unordered_set<Lr0Item> items = {
-        {"E", {"E", "+", "T"}, 1, g.st_.EPSILON_, g.st_.EOL_},  // E -> E • + T
-        {"T", {"T", "*", "F"}, 0, g.st_.EPSILON_, g.st_.EOL_},  // T -> • T * F
-        {"F", {"(", "E", ")"}, 2, g.st_.EPSILON_, g.st_.EOL_}    // F -> ( E • )
+        {"E", {"E", "+", "T"}, 1, g.st_.EPSILON_, g.st_.EOL_}, // E -> E • + T
+        {"T", {"T", "*", "F"}, 0, g.st_.EPSILON_, g.st_.EOL_}, // T -> • T * F
+        {"F", {"(", "E", ")"}, 2, g.st_.EPSILON_, g.st_.EOL_}  // F -> ( E • )
     };
-    
+
     slr1.Closure(items);
-    
+
     // Expected items after closure
     std::unordered_set<Lr0Item> expected = {
         {"E", {"E", "+", "T"}, 1, g.st_.EPSILON_, g.st_.EOL_},
@@ -1995,7 +1984,7 @@ TEST(SLR1_ClosureTest, MultipleItemsWithDifferentDotPositions) {
         {"F", {"n"}, 0, g.st_.EPSILON_, g.st_.EOL_},
         // From F -> ( E • )
     };
-    
+
     EXPECT_EQ(items, expected);
 }
 
@@ -2007,27 +1996,25 @@ TEST(SLR1_ClosureTest, DotAtEndOfProduction) {
     g.st_.PutSymbol("a", true);
     g.st_.PutSymbol("b", true);
     g.st_.PutSymbol(g.st_.EPSILON_, true);
-    
+
     g.axiom_ = "S";
-    
+
     g.AddProduction("S", {"A", "B", g.st_.EOL_});
     g.AddProduction("A", {"a"});
     g.AddProduction("B", {"b"});
-    
+
     SLR1Parser slr1(g);
-    
+
     // Initial item: A -> a •
     std::unordered_set<Lr0Item> items = {
-        {"A", {"a"}, 1, g.st_.EPSILON_, g.st_.EOL_}
-    };
-    
+        {"A", {"a"}, 1, g.st_.EPSILON_, g.st_.EOL_}};
+
     slr1.Closure(items);
-    
+
     // Should remain unchanged since dot is at the end
     std::unordered_set<Lr0Item> expected = {
-        {"A", {"a"}, 1, g.st_.EPSILON_, g.st_.EOL_}
-    };
-    
+        {"A", {"a"}, 1, g.st_.EPSILON_, g.st_.EOL_}};
+
     EXPECT_EQ(items, expected);
 }
 
@@ -2041,9 +2028,9 @@ TEST(SLR1_ClosureTest, MixedDotPositionsWithNullableSymbols) {
     g.st_.PutSymbol("b", true);
     g.st_.PutSymbol("c", true);
     g.st_.PutSymbol(g.st_.EPSILON_, true);
-    
+
     g.axiom_ = "S";
-    
+
     g.AddProduction("S", {"A", "B", "C", g.st_.EOL_});
     g.AddProduction("A", {"a", "A"});
     g.AddProduction("A", {g.st_.EPSILON_});
@@ -2051,18 +2038,22 @@ TEST(SLR1_ClosureTest, MixedDotPositionsWithNullableSymbols) {
     g.AddProduction("B", {g.st_.EPSILON_});
     g.AddProduction("C", {"c", "C"});
     g.AddProduction("C", {g.st_.EPSILON_});
-    
+
     SLR1Parser slr1(g);
-    
+
     // Initial items with dots in different positions
     std::unordered_set<Lr0Item> items = {
-        {"S", {"A", "B", "C", g.st_.EOL_}, 1, g.st_.EPSILON_, g.st_.EOL_},  // S -> A • B C EOL
-        {"A", {"a", "A"}, 1, g.st_.EPSILON_, g.st_.EOL_},                   // A -> a • A
-        {"B", {"b", "B"}, 0, g.st_.EPSILON_, g.st_.EOL_}                    // B -> • b B
+        {"S",
+         {"A", "B", "C", g.st_.EOL_},
+         1,
+         g.st_.EPSILON_,
+         g.st_.EOL_},                                     // S -> A • B C EOL
+        {"A", {"a", "A"}, 1, g.st_.EPSILON_, g.st_.EOL_}, // A -> a • A
+        {"B", {"b", "B"}, 0, g.st_.EPSILON_, g.st_.EOL_}  // B -> • b B
     };
-    
+
     slr1.Closure(items);
-    
+
     // Expected items after closure
     std::unordered_set<Lr0Item> expected = {
         {"S", {"A", "B", "C", g.st_.EOL_}, 1, g.st_.EPSILON_, g.st_.EOL_},
@@ -2076,9 +2067,8 @@ TEST(SLR1_ClosureTest, MixedDotPositionsWithNullableSymbols) {
         {"A", {g.st_.EPSILON_}, 1, g.st_.EPSILON_, g.st_.EOL_},
         // From B -> • b B
         {"B", {"b", "B"}, 0, g.st_.EPSILON_, g.st_.EOL_},
-        {"B", {g.st_.EPSILON_}, 1, g.st_.EPSILON_, g.st_.EOL_}
-    };
-    
+        {"B", {g.st_.EPSILON_}, 1, g.st_.EPSILON_, g.st_.EOL_}};
+
     EXPECT_EQ(items, expected);
 }
 
@@ -2087,23 +2077,22 @@ TEST(SLR1_MakeInitialState, BasicGrammar) {
     g.st_.PutSymbol("S", false);
     g.st_.PutSymbol("a", true);
     g.st_.PutSymbol(g.st_.EPSILON_, true);
-    
+
     g.axiom_ = "S";
     g.AddProduction("S", {"a", g.st_.EOL_});
-    
+
     SLR1Parser slr1(g);
     slr1.MakeInitialState();
-    
+
     const auto& states = slr1.states_;
     ASSERT_EQ(states.size(), 1);
-    
+
     const auto& initial_state = *states.begin();
     EXPECT_EQ(initial_state.id_, 0);
-    
+
     std::unordered_set<Lr0Item> expected_items = {
-        {"S", {"a", g.st_.EOL_}, 0, g.st_.EPSILON_, g.st_.EOL_}
-    };
-    
+        {"S", {"a", g.st_.EOL_}, 0, g.st_.EPSILON_, g.st_.EOL_}};
+
     EXPECT_EQ(initial_state.items_, expected_items);
 }
 
@@ -2114,26 +2103,25 @@ TEST(SLR1_MakeInitialState, MultipleAxiomProductions) {
     g.st_.PutSymbol("a", true);
     g.st_.PutSymbol("b", true);
     g.st_.PutSymbol(g.st_.EPSILON_, true);
-    
+
     g.axiom_ = "S";
     g.AddProduction("S", {"E", g.st_.EOL_});
     g.AddProduction("E", {"a"});
     g.AddProduction("E", {"b"});
-    
+
     SLR1Parser slr1(g);
     slr1.MakeInitialState();
-    
+
     const auto& states = slr1.states_;
     ASSERT_EQ(states.size(), 1);
-    
+
     const auto& initial_state = *states.begin();
-    
+
     std::unordered_set<Lr0Item> expected_items = {
         {"S", {"E", g.st_.EOL_}, 0, g.st_.EPSILON_, g.st_.EOL_},
         {"E", {"a"}, 0, g.st_.EOL_, g.st_.EOL_},
-        {"E", {"b"}, 0, g.st_.EOL_, g.st_.EOL_}
-    };
-    
+        {"E", {"b"}, 0, g.st_.EOL_, g.st_.EOL_}};
+
     EXPECT_EQ(initial_state.items_, expected_items);
 }
 
@@ -2145,28 +2133,27 @@ TEST(SLR1_MakeInitialState, ComplexGrammarWithNullable) {
     g.st_.PutSymbol("a", true);
     g.st_.PutSymbol("b", true);
     g.st_.PutSymbol(g.st_.EPSILON_, true);
-    
+
     g.axiom_ = "S";
     g.AddProduction("S", {"A", "B", g.st_.EOL_});
     g.AddProduction("A", {"a", "A"});
     g.AddProduction("A", {g.st_.EPSILON_});
     g.AddProduction("B", {"b", "B"});
     g.AddProduction("B", {g.st_.EPSILON_});
-    
+
     SLR1Parser slr1(g);
     slr1.MakeInitialState();
-    
+
     const auto& states = slr1.states_;
     ASSERT_EQ(states.size(), 1);
-    
+
     const auto& initial_state = *states.begin();
-    
+
     std::unordered_set<Lr0Item> expected_items = {
         {"S", {"A", "B", g.st_.EOL_}, 0, g.st_.EPSILON_, g.st_.EOL_},
         {"A", {"a", "A"}, 0, "B", g.st_.EOL_},
-        {"A", {g.st_.EPSILON_}, 1, "B", g.st_.EOL_}
-    };
-    
+        {"A", {g.st_.EPSILON_}, 1, "B", g.st_.EOL_}};
+
     EXPECT_EQ(initial_state.items_, expected_items);
 }
 
@@ -2179,30 +2166,29 @@ TEST(SLR1_MakeInitialState, RecursiveGrammar) {
     g.st_.PutSymbol("*", true);
     g.st_.PutSymbol("n", true);
     g.st_.PutSymbol(g.st_.EPSILON_, true);
-    
+
     g.axiom_ = "S";
     g.AddProduction("S", {"E", g.st_.EOL_});
     g.AddProduction("E", {"E", "+", "T"});
     g.AddProduction("E", {"T"});
     g.AddProduction("T", {"T", "*", "n"});
     g.AddProduction("T", {"n"});
-    
+
     SLR1Parser slr1(g);
     slr1.MakeInitialState();
-    
+
     const auto& states = slr1.states_;
     ASSERT_EQ(states.size(), 1);
-    
+
     const auto& initial_state = *states.begin();
-    
+
     std::unordered_set<Lr0Item> expected_items = {
         {"S", {"E", g.st_.EOL_}, 0, g.st_.EPSILON_, g.st_.EOL_},
         {"E", {"E", "+", "T"}, 0, g.st_.EOL_, g.st_.EOL_},
         {"E", {"T"}, 0, g.st_.EOL_, g.st_.EOL_},
         {"T", {"T", "*", "n"}, 0, "+", g.st_.EOL_},
-        {"T", {"n"}, 0, "+", g.st_.EOL_}
-    };
-    
+        {"T", {"n"}, 0, "+", g.st_.EOL_}};
+
     EXPECT_EQ(initial_state.items_, expected_items);
 }
 
@@ -2211,28 +2197,28 @@ TEST(SLR1_MakeInitialState, StateIdAndUniqueness) {
     g.st_.PutSymbol("S", false);
     g.st_.PutSymbol("a", true);
     g.st_.PutSymbol(g.st_.EPSILON_, true);
-    
+
     g.axiom_ = "S";
     g.AddProduction("S", {"a", g.st_.EOL_});
-    
+
     SLR1Parser slr1(g);
     slr1.MakeInitialState();
-    
+
     // Calling again should not create duplicate states
     slr1.MakeInitialState();
-    
+
     const auto& states = slr1.states_;
     ASSERT_EQ(states.size(), 1);
-    
+
     const auto& initial_state = *states.begin();
     EXPECT_EQ(initial_state.id_, 0);
-    
+
     // Verify the state is properly hashed and compared
     state duplicate;
     duplicate.id_ = 0;
-    duplicate.items_.emplace("S", std::vector<std::string>{"a", g.st_.EOL_}, 0, 
-                           g.st_.EPSILON_, g.st_.EOL_);
-    
+    duplicate.items_.emplace("S", std::vector<std::string>{"a", g.st_.EOL_}, 0,
+                             g.st_.EPSILON_, g.st_.EOL_);
+
     EXPECT_TRUE(states.contains(duplicate));
 }
 
@@ -2241,17 +2227,17 @@ TEST(SLR1_SolveLRConflicts, AcceptAction) {
     g.st_.PutSymbol("S", false);
     g.st_.PutSymbol("a", true);
     g.st_.PutSymbol(g.st_.EPSILON_, true);
-    
+
     g.axiom_ = "S";
     g.AddProduction("S", {"a", g.st_.EOL_});
-    
+
     SLR1Parser slr1(g);
-    
+
     state st;
     st.id_ = 0;
-    st.items_.emplace("S", std::vector<std::string>{"a", g.st_.EOL_}, 2, 
-                     g.st_.EPSILON_, g.st_.EOL_); // Complete item
-    
+    st.items_.emplace("S", std::vector<std::string>{"a", g.st_.EOL_}, 2,
+                      g.st_.EPSILON_, g.st_.EOL_); // Complete item
+
     EXPECT_TRUE(slr1.SolveLRConflicts(st));
     EXPECT_EQ(slr1.actions_[0][g.st_.EOL_].action, SLR1Parser::Action::Accept);
 }
@@ -2262,20 +2248,19 @@ TEST(SLR1_SolveLRConflicts, BasicReduce) {
     g.st_.PutSymbol("E", false);
     g.st_.PutSymbol("a", true);
     g.st_.PutSymbol(g.st_.EPSILON_, true);
-    
+
     g.axiom_ = "S";
     g.AddProduction("S", {"E", g.st_.EOL_});
     g.AddProduction("E", {"a"});
-    
-        
+
     SLR1Parser slr1(g);
     slr1.ComputeFirstSets();
     slr1.ComputeFollowSets();
     state st;
     st.id_ = 0;
-    st.items_.emplace("E", std::vector<std::string>{"a"}, 1, 
-                     g.st_.EPSILON_, g.st_.EOL_); // Complete item
-    
+    st.items_.emplace("E", std::vector<std::string>{"a"}, 1, g.st_.EPSILON_,
+                      g.st_.EOL_); // Complete item
+
     EXPECT_TRUE(slr1.SolveLRConflicts(st));
     EXPECT_EQ(slr1.actions_[0][g.st_.EOL_].action, SLR1Parser::Action::Reduce);
 }
@@ -2286,20 +2271,46 @@ TEST(SLR1_SolveLRConflicts, BasicShift) {
     g.st_.PutSymbol("E", false);
     g.st_.PutSymbol("a", true);
     g.st_.PutSymbol(g.st_.EPSILON_, true);
-    
+
     g.axiom_ = "S";
     g.AddProduction("S", {"E", g.st_.EOL_});
     g.AddProduction("E", {"a"});
-    
+
     SLR1Parser slr1(g);
-    
+
     state st;
     st.id_ = 0;
-    st.items_.emplace("E", std::vector<std::string>{"a"}, 0, 
-                     g.st_.EPSILON_, g.st_.EOL_); // Dot before terminal
-    
+    st.items_.emplace("E", std::vector<std::string>{"a"}, 0, g.st_.EPSILON_,
+                      g.st_.EOL_); // Dot before terminal
+
     EXPECT_TRUE(slr1.SolveLRConflicts(st));
     EXPECT_EQ(slr1.actions_[0]["a"].action, SLR1Parser::Action::Shift);
+}
+
+TEST(SLR1_SolveLRConflicts, SolveShiftReduceConflict) {
+    Grammar g;
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("E", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+
+    g.axiom_ = "S";
+    g.AddProduction("S", {"E", g.st_.EOL_});
+    g.AddProduction("E", {"a"});
+    g.AddProduction("E", {"a", "E"});
+
+    SLR1Parser slr1(g);
+    slr1.ComputeFirstSets();
+    slr1.ComputeFollowSets();
+
+    state st;
+    st.id_ = 0;
+    st.items_.emplace("E", std::vector<std::string>{"a"}, 1, g.st_.EPSILON_,
+                      g.st_.EOL_);
+    st.items_.emplace("E", std::vector<std::string>{"a", "E"}, 0,
+                      g.st_.EPSILON_, g.st_.EOL_);
+
+    EXPECT_TRUE(slr1.SolveLRConflicts(st)); // Should NOT detect conflict
 }
 
 TEST(SLR1_SolveLRConflicts, ShiftReduceConflict) {
@@ -2308,27 +2319,40 @@ TEST(SLR1_SolveLRConflicts, ShiftReduceConflict) {
     g.st_.PutSymbol("E", false);
     g.st_.PutSymbol("a", true);
     g.st_.PutSymbol(g.st_.EPSILON_, true);
-    
+
     g.axiom_ = "S";
     g.AddProduction("S", {"E", g.st_.EOL_});
     g.AddProduction("E", {"a"});
-    g.AddProduction("E", {"a", "E"}); // Shift-reduce conflict on 'a'
-    
-    
+    g.AddProduction("E", {"a", "E"});
+    g.AddProduction("E", {"E", "a"});
+
     SLR1Parser slr1(g);
     slr1.ComputeFirstSets();
     slr1.ComputeFollowSets();
 
     state st;
     st.id_ = 0;
-    // Complete item (reduce on FOLLOW(E))
-    st.items_.emplace("E", std::vector<std::string>{"a"}, 1, 
-                     g.st_.EPSILON_, g.st_.EOL_);
-    // Incomplete item (shift on 'a')
-    st.items_.emplace("E", std::vector<std::string>{"a", "E"}, 0, 
-                     g.st_.EPSILON_, g.st_.EOL_);
-    
-    EXPECT_TRUE(slr1.SolveLRConflicts(st)); // Should NOT detect conflict
+
+    st.items_.emplace("E", std::vector<std::string>{"a"}, 1, g.st_.EPSILON_,
+                      g.st_.EOL_);
+    st.items_.emplace("E", std::vector<std::string>{"a", "E"}, 1,
+                      g.st_.EPSILON_, g.st_.EOL_);
+    st.items_.emplace("E", std::vector<std::string>{"a"}, 0, g.st_.EPSILON_,
+                      g.st_.EOL_);
+    st.items_.emplace("E", std::vector<std::string>{"a", "E"}, 0,
+                      g.st_.EPSILON_, g.st_.EOL_);
+    st.items_.emplace("E", std::vector<std::string>{"E", "a"}, 0,
+                      g.st_.EPSILON_, g.st_.EOL_);
+
+    state st1;
+    st.id_ = 1;
+    st.items_.emplace("E", std::vector<std::string>{"a", "E"}, 2,
+                      g.st_.EPSILON_, g.st_.EOL_);
+    st.items_.emplace("E", std::vector<std::string>{"E", "a"}, 1,
+                      g.st_.EPSILON_, g.st_.EOL_);
+
+    EXPECT_FALSE(slr1.SolveLRConflicts(st));
+    EXPECT_TRUE(slr1.SolveLRConflicts(st1));
 }
 
 int main(int argc, char** argv) {
