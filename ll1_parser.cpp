@@ -37,7 +37,7 @@ bool LL1Parser::CreateLL1Table() {
                 cell.push_back(p);
             }
         }
-        ll1_t_.insert({lhs, column});
+        ll1_t_.try_emplace(lhs, std::move(column));
     }
     return !has_conflict;
 }
@@ -72,7 +72,7 @@ void LL1Parser::First(std::span<const std::string>     rule,
             }
         }
 
-        if (fii.find(gr_.st_.EPSILON_) == fii.cend()) {
+        if (!fii.contains(gr_.st_.EPSILON_)) {
             return;
         }
         First(std::span<const std::string>(rule.begin() + 1, rule.end()),
@@ -96,7 +96,7 @@ void LL1Parser::ComputeFirstSets() {
                 std::unordered_set<std::string> tempFirst;
                 First(prod, tempFirst);
 
-                if (tempFirst.find(gr_.st_.EOL_) != tempFirst.end()) {
+                if (tempFirst.contains(gr_.st_.EOL_)) {
                     tempFirst.erase(gr_.st_.EOL_);
                     tempFirst.insert(gr_.st_.EPSILON_);
                 }
@@ -121,9 +121,8 @@ void LL1Parser::ComputeFollowSets() {
     bool changed;
     do {
         changed = false;
-        for (const auto& rule : gr_.g_) {
-            const std::string& lhs = rule.first;
-            for (const production& rhs : rule.second) {
+        for (const auto& [lhs, productions] : gr_.g_) {
+            for (const production& rhs : productions) {
                 for (size_t i = 0; i < rhs.size(); ++i) {
                     const std::string& symbol = rhs[i];
                     if (!gr_.st_.IsTerminal(symbol)) {
@@ -165,7 +164,7 @@ bool LL1Parser::UpdateFollow(const std::string& symbol, const std::string& lhs,
 }
 
 std::unordered_set<std::string> LL1Parser::Follow(const std::string& arg) {
-    if (follow_sets_.find(arg) == follow_sets_.end()) {
+    if (!follow_sets_.contains(arg)) {
         return {};
     }
     return follow_sets_.at(arg);
@@ -176,7 +175,7 @@ LL1Parser::PredictionSymbols(const std::string&              antecedent,
                              const std::vector<std::string>& consequent) {
     std::unordered_set<std::string> hd{};
     First({consequent}, hd);
-    if (hd.find(gr_.st_.EPSILON_) == hd.end()) {
+    if (!hd.contains(gr_.st_.EPSILON_)) {
         return hd;
     }
     hd.erase(gr_.st_.EPSILON_);
@@ -212,14 +211,14 @@ void LL1Parser::PrintTable() {
         non_terminals.push_back(outerPair.first);
     }
 
-    std::sort(non_terminals.begin(), non_terminals.end(),
-              [this](const std::string& a, const std::string& b) {
-                  if (a == gr_.axiom_)
-                      return true; // Axiom comes first
-                  if (b == gr_.axiom_)
-                      return false; // Axiom comes first
-                  return a < b;     // Sort the rest alphabetically
-              });
+    std::ranges::sort(non_terminals,
+                      [this](const std::string& a, const std::string& b) {
+                          if (a == gr_.axiom_)
+                              return true; // Axiom comes first
+                          if (b == gr_.axiom_)
+                              return false; // Axiom comes first
+                          return a < b;     // Sort the rest alphabetically
+                      });
 
     for (const std::string& nonTerminal : non_terminals) {
         Table::Row_t row_data = {nonTerminal};
