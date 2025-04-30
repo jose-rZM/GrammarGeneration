@@ -240,7 +240,7 @@ struct GrammarFactory {
      * unreachable symbols are removed. For example: A -> a A | B; B -> c |
      * EPSILON would be A -> a A | c | EPSILON;. B becomes unreachable once A ->
      * B it is removed, so B is removed alongside its productions.
-     * @param grammar. The grammar to remove unit rules.
+     * @param grammar The grammar to remove unit rules.
      */
     void RemoveUnitRules(Grammar& grammar);
 

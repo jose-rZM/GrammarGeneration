@@ -165,7 +165,7 @@ Grammar GrammarFactory::Lv3() {
         0, terminal_alphabet_set.size() - 1);
     std::vector<std::string> remaining_terminals(terminal_alphabet_set.begin(),
                                                  terminal_alphabet_set.end());
-    std::string new_terminal = remaining_terminals[terminal_dist(gen)];
+    const std::string& new_terminal = remaining_terminals[terminal_dist(gen)];
 
     std::uniform_int_distribution<size_t> base_terminal_dist(
         0, base.st_.terminals_wtho_eol_.size() - 1);
@@ -257,7 +257,7 @@ Grammar GrammarFactory::Lv4() {
         0, terminal_alphabet_set.size() - 1);
     std::vector<std::string> remaining_terminals(terminal_alphabet_set.begin(),
                                                  terminal_alphabet_set.end());
-    std::string new_terminal = remaining_terminals[terminal_dist(gen)];
+    const std::string& new_terminal = remaining_terminals[terminal_dist(gen)];
 
     std::uniform_int_distribution<size_t> base_terminal_dist(
         0, base.st_.terminals_wtho_eol_.size() - 1);
@@ -349,7 +349,7 @@ Grammar GrammarFactory::Lv5() {
         0, terminal_alphabet_set.size() - 1);
     std::vector<std::string> remaining_terminals(terminal_alphabet_set.begin(),
                                                  terminal_alphabet_set.end());
-    std::string new_terminal = remaining_terminals[terminal_dist(gen)];
+    const std::string& new_terminal = remaining_terminals[terminal_dist(gen)];
 
     std::uniform_int_distribution<size_t> base_terminal_dist(
         0, base.st_.terminals_wtho_eol_.size() - 1);
@@ -441,7 +441,7 @@ Grammar GrammarFactory::Lv6() {
         0, terminal_alphabet_set.size() - 1);
     std::vector<std::string> remaining_terminals(terminal_alphabet_set.begin(),
                                                  terminal_alphabet_set.end());
-    std::string new_terminal = remaining_terminals[terminal_dist(gen)];
+    const std::string& new_terminal = remaining_terminals[terminal_dist(gen)];
 
     std::uniform_int_distribution<size_t> base_terminal_dist(
         0, base.st_.terminals_wtho_eol_.size() - 1);
@@ -532,7 +532,7 @@ Grammar GrammarFactory::Lv7() {
         0, terminal_alphabet_set.size() - 1);
     std::vector<std::string> remaining_terminals(terminal_alphabet_set.begin(),
                                                  terminal_alphabet_set.end());
-    std::string new_terminal = remaining_terminals[terminal_dist(gen)];
+    const std::string& new_terminal = remaining_terminals[terminal_dist(gen)];
 
     std::uniform_int_distribution<size_t> base_terminal_dist(
         0, base.st_.terminals_wtho_eol_.size() - 1);
@@ -629,7 +629,7 @@ GrammarFactory::FactoryItem GrammarFactory::CreateLv2Item() {
         0, terminal_alphabet_set.size() - 1);
     std::vector<std::string> remaining_terminals(terminal_alphabet_set.begin(),
                                                  terminal_alphabet_set.end());
-    std::string new_terminal = remaining_terminals[terminal_dist(gen)];
+    const std::string& new_terminal = remaining_terminals[terminal_dist(gen)];
 
     std::uniform_int_distribution<size_t> base_terminal_dist(
         0, base.st_.terminals_wtho_eol_.size() - 1);
@@ -674,7 +674,7 @@ GrammarFactory::FactoryItem GrammarFactory::CreateLv2Item() {
                                     prods.end());
     }
 
-    return FactoryItem(combined_grammar);
+    return {combined_grammar};
 }
 
 bool GrammarFactory::HasUnreachableSymbols(Grammar& grammar) const {
@@ -688,8 +688,7 @@ bool GrammarFactory::HasUnreachableSymbols(Grammar& grammar) const {
         std::string current = pending.front();
         pending.pop();
 
-        auto it = grammar.g_.find(current);
-        if (it != grammar.g_.end()) {
+        if (auto it = grammar.g_.find(current); it != grammar.g_.end()) {
             for (const auto& production : it->second) {
                 for (const auto& symbol : production) {
                     if (!grammar.st_.IsTerminal(symbol) &&
@@ -752,7 +751,7 @@ bool GrammarFactory::HasDirectLeftRecursion(const Grammar& grammar) const {
 }
 
 bool GrammarFactory::HasIndirectLeftRecursion(Grammar& grammar) {
-    std::unordered_set<std::string> nullable = NullableSymbols(grammar);
+    const std::unordered_set<std::string> nullable = NullableSymbols(grammar);
     std::unordered_map<std::string, std::unordered_set<std::string>> graph;
 
     for (const auto& [nt, productions] : grammar.g_) {
@@ -890,6 +889,7 @@ void GrammarFactory::RemoveLeftRecursion(Grammar& grammar) {
     grammar.g_ = std::move(new_rules);
 }
 
+// FIXME the method fails in removing the unit rules
 void GrammarFactory::RemoveUnitRules(Grammar& grammar) {
     for (const auto& [nt, prods] : grammar.g_) {
         for (const auto& prod : prods) {
@@ -976,7 +976,7 @@ std::vector<std::string> GrammarFactory::LongestCommonPrefix(
     while (i < min_length && first[i] == last[i]) {
         ++i;
     }
-    return std::vector<std::string>(first.begin(), first.begin() + i);
+    return {first.begin(), first.begin() + i};
 }
 
 bool GrammarFactory::StartsWith(const production&               prod,
@@ -1030,9 +1030,9 @@ bool GrammarFactory::FactoryItem::HasEmptyProduction(
 
 void GrammarFactory::FactoryItem::Debug() const {
     std::cout << "Grammar:\n";
-    for (const auto& entry : g_) {
-        std::cout << entry.first << " -> ";
-        for (const std::vector<std::string>& prod : entry.second) {
+    for (const auto& [lhs, productions] : g_) {
+        std::cout << lhs << " -> ";
+        for (const std::vector<std::string>& prod : productions) {
             for (const std::string& symbol : prod) {
                 std::cout << symbol << " ";
             }
