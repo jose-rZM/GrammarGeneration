@@ -1,50 +1,50 @@
-
 CXX = g++
 CXXFLAGS = -Wall -std=c++20 -g
 
-INCDIR = -I./
+INCDIR = -I./include/ -I./include/ll1 -I./include/slr1
 LIBDIR =
 
-SRC = main.cpp \
-      grammar_factory.cpp \
-      grammar.cpp \
-      ll1_parser.cpp \
-      slr1_parser.cpp \
-      lr0_item.cpp \
-      symbol_table.cpp
+SRC = src/main.cpp \
+      src/grammar_factory.cpp \
+      src/grammar.cpp \
+      src/ll1/ll1_parser.cpp \
+      src/slr1/slr1_parser.cpp \
+      src/slr1/lr0_item.cpp \
+      src/symbol_table.cpp
 
+OBJDIR = build/obj
 OBJ = $(SRC:.cpp=.o)
-
+OBJ := $(patsubst src/%, $(OBJDIR)/%, $(OBJ))
 TARGET = gen
 
-TEST_SRC = tests.cpp
-TEST_OBJ = $(TEST_SRC:.cpp=.o)
+TEST_SRC = src/tests.cpp
+TEST_OBJ = $(patsubst src/%, $(OBJDIR)/%, $(TEST_SRC:.cpp=.o))
 TEST_TARGET = run_tests
 GTEST_LIBS = -lgtest -lgtest_main -lpthread
+
 all: $(TARGET)
 
 $(TARGET): $(OBJ)
-	$(CXX) $(OBJ) -o $(TARGET) $(LIBDIR)
+	$(CXX) $^ -o $@ $(LIBDIR)
 
-$(TEST_TARGET): $(TEST_OBJ) $(filter-out main.o, $(OBJ))
-	$(CXX) $(filter-out main.o, $(OBJ)) $(TEST_OBJ) -o $(TEST_TARGET) $(LIBDIR) $(GTEST_LIBS)
+$(TEST_TARGET): $(TEST_OBJ) $(filter-out $(OBJDIR)/main.o, $(OBJ))
+	$(CXX) $^ -o $@ $(LIBDIR) $(GTEST_LIBS)
 
-%.o: %.cpp
+$(OBJDIR)/%.o: src/%.cpp
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(INCDIR) -c $< -o $@
 
 test: $(TEST_TARGET)
 	./$(TEST_TARGET)
 
 clean:
-	rm -f $(OBJ)
+	rm -rf $(OBJDIR)
 
 fclean: clean
-	rm -f $(OBJ) $(TARGET)
+	rm -f $(TARGET) $(TEST_TARGET)
 
 format:
 	@find . -name "*.cpp" -o -name "*.hpp" | xargs clang-format -i
 
 re: fclean all
-
--include $(SRC:.cpp=.d)
 
