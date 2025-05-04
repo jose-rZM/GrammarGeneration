@@ -1854,6 +1854,44 @@ TEST(SLR1_ClosureTest, ComplexGrammarWithNullable) {
     EXPECT_EQ(items, expected);
 }
 
+TEST(SLR1_ClosureTest, CompleteItemClosure) {
+    Grammar g;
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("C", false);
+    g.st_.PutSymbol("D", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+    g.st_.PutSymbol("c", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"D", g.st_.EOL_});
+    g.AddProduction("D", {"A", "B", "C"});
+    g.AddProduction("A", {"a", "A"});
+    g.AddProduction("A", {g.st_.EPSILON_});
+    g.AddProduction("B", {"b", "B"});
+    g.AddProduction("B", {g.st_.EPSILON_});
+    g.AddProduction("C", {"c", "C"});
+    g.AddProduction("C", {g.st_.EPSILON_});
+
+    SLR1Parser slr1(g);
+
+    std::unordered_set<Lr0Item> items = {
+        {"A", {g.st_.EPSILON_}, g.st_.EPSILON_, g.st_.EOL_}};
+
+    slr1.Closure(items);
+
+    std::unordered_set<Lr0Item> expected = {
+        {"A", {g.st_.EPSILON_}, 1, g.st_.EPSILON_, g.st_.EOL_}    
+    };
+    
+    EXPECT_EQ(items, expected);
+}
+
+
 TEST(SLR1_ClosureTest, NoAdditionalClosureNeeded) {
     Grammar g;
     g.st_.PutSymbol("S", false);
@@ -2070,6 +2108,155 @@ TEST(SLR1_ClosureTest, MixedDotPositionsWithNullableSymbols) {
         {"B", {g.st_.EPSILON_}, 1, g.st_.EPSILON_, g.st_.EOL_}};
 
     EXPECT_EQ(items, expected);
+}
+
+TEST(SLR1_Delta, DeltaFunctionToBasicItemSet) {
+    Grammar g;
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"A", "B", g.st_.EOL_});
+    g.AddProduction("A", {"a"});
+    g.AddProduction("B", {"b"});
+
+    SLR1Parser slr1(g);
+
+    std::unordered_set<Lr0Item> items = {
+        {"S", {"A", "B", g.st_.EOL_}, 0, g.st_.EPSILON_, g.st_.EOL_}};
+
+    auto result = slr1.Delta(items, "A");
+    
+    std::unordered_set<Lr0Item> expected = {
+        {"S", {"A", "B", g.st_.EOL_}, 1, g.st_.EPSILON_, g.st_.EOL_},
+        {"B", {"b"}, g.st_.EPSILON_, g.st_.EOL_}};
+    
+    EXPECT_EQ(result, expected);
+}
+
+TEST(SLR1_Delta, DeltaFunctionWhenSymbolDoesNotExists) {
+    Grammar g;
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"A", "B", g.st_.EOL_});
+    g.AddProduction("A", {"a"});
+    g.AddProduction("B", {"b"});
+
+    SLR1Parser slr1(g);
+
+    std::unordered_set<Lr0Item> items = {
+        {"S", {"A", "B", g.st_.EOL_}, 0, g.st_.EPSILON_, g.st_.EOL_}};
+
+    auto result = slr1.Delta(items, "Z");
+    
+    std::unordered_set<Lr0Item> expected = {};
+    
+    EXPECT_EQ(result, expected);
+}
+
+TEST(SLR1_Delta, DeltaFunctionWhenSymbolDoesNotExistsAndIsEpsilon) {
+    Grammar g;
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"A", "B", g.st_.EOL_});
+    g.AddProduction("A", {"a"});
+    g.AddProduction("B", {"b"});
+
+    SLR1Parser slr1(g);
+
+    std::unordered_set<Lr0Item> items = {
+        {"S", {"A", "B", g.st_.EOL_}, 0, g.st_.EPSILON_, g.st_.EOL_}};
+
+    auto result = slr1.Delta(items, g.st_.EPSILON_);
+    
+    std::unordered_set<Lr0Item> expected = {};
+    
+    EXPECT_EQ(result, expected);
+}
+
+TEST(SLR1_Delta, DeltaFunctionWhenItemIsComplete) {
+    Grammar g;
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("C", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+    g.st_.PutSymbol("c", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"A", "B", "C", g.st_.EOL_});
+    g.AddProduction("A", {"a", "A"});
+    g.AddProduction("A", {g.st_.EPSILON_});
+    g.AddProduction("B", {"b", "B"});
+    g.AddProduction("B", {g.st_.EPSILON_});
+    g.AddProduction("C", {"c", "C"});
+    g.AddProduction("C", {g.st_.EPSILON_});
+
+    SLR1Parser slr1(g);
+
+    std::unordered_set<Lr0Item> items = {
+        {"A", {"a", "A"}, 2, g.st_.EPSILON_, g.st_.EOL_}};
+
+    auto result = slr1.Delta(items, "A");
+    
+    std::unordered_set<Lr0Item> expected = {};
+    
+    EXPECT_EQ(result, expected);
+}
+
+TEST(SLR1_Delta, DeltaFunctionWhenItemAmdSymbolAreEpsilon) {
+    Grammar g;
+    g.st_.PutSymbol("S", false);
+    g.st_.PutSymbol("A", false);
+    g.st_.PutSymbol("B", false);
+    g.st_.PutSymbol("C", false);
+    g.st_.PutSymbol("a", true);
+    g.st_.PutSymbol("b", true);
+    g.st_.PutSymbol("c", true);
+    g.st_.PutSymbol(g.st_.EPSILON_, true);
+
+    g.axiom_ = "S";
+
+    g.AddProduction("S", {"A", "B", "C", g.st_.EOL_});
+    g.AddProduction("A", {"a", "A"});
+    g.AddProduction("A", {g.st_.EPSILON_});
+    g.AddProduction("B", {"b", "B"});
+    g.AddProduction("B", {g.st_.EPSILON_});
+    g.AddProduction("C", {"c", "C"});
+    g.AddProduction("C", {g.st_.EPSILON_});
+
+    SLR1Parser slr1(g);
+
+    std::unordered_set<Lr0Item> items = {
+        {"A", {g.st_.EPSILON_}, g.st_.EPSILON_, g.st_.EOL_}};
+
+    auto result = slr1.Delta(items, g.st_.EPSILON_);
+    
+    std::unordered_set<Lr0Item> expected = {};
+    
+    EXPECT_EQ(result, expected);
 }
 
 TEST(SLR1_MakeInitialState, BasicGrammar) {

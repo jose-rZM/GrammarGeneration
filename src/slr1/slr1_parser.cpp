@@ -317,6 +317,33 @@ void SLR1Parser::ClosureUtil(std::unordered_set<Lr0Item>&     items,
         ClosureUtil(items, items.size(), visited);
 }
 
+std::unordered_set<Lr0Item>
+SLR1Parser::Delta(const std::unordered_set<Lr0Item>& items,
+                  const std::string&                 str) {
+    if (str == gr_.st_.EPSILON_) {
+        return {}; // DELTA(I, EPSILON) = empty
+    }
+    std::vector<Lr0Item> filtered;
+    std::ranges::for_each(items, [&](const Lr0Item& item) -> void {
+        std::string next = item.NextToDot();
+        if (next == str) {
+            filtered.push_back(item);
+        }
+    });
+    if (filtered.empty()) {
+        return {};
+    } else {
+        std::unordered_set<Lr0Item> delta_items;
+        delta_items.reserve(filtered.size());
+        for (Lr0Item& lr : filtered) {
+            lr.AdvanceDot();
+            delta_items.insert(lr);
+        }
+        Closure(delta_items);
+        return delta_items;
+    }
+}
+
 void SLR1Parser::First(std::span<const std::string>     rule,
                        std::unordered_set<std::string>& result) {
     if (rule.empty() || (rule.size() == 1 && rule[0] == gr_.st_.EPSILON_)) {

@@ -129,6 +129,11 @@ class SLR1Parser {
     void ClosureUtil(std::unordered_set<Lr0Item>& items, size_t size,
                      std::unordered_set<std::string>& visited);
 
+
+                     std::unordered_set<Lr0Item>
+                     Delta(const std::unordered_set<Lr0Item>& items,
+                                       const std::string&                 str);
+
     /**
      * @brief Resolves LR conflicts in a given state.
      *
