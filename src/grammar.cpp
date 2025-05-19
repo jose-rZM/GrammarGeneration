@@ -22,12 +22,18 @@ Grammar::Grammar(
     }
     axiom_ = "S";
     g_     = grammar;
-    if (!g_.contains(axiom_)) {
-        // S -> firstNonTerminal $
-        g_[axiom_] = {{*st_.non_terminals_.begin(), st_.EOL_}};
-        st_.PutSymbol(axiom_, false);
-    }
+    g_["S"] = {{"A", st_.EOL_}};
+    st_.PutSymbol(axiom_, false);
 }
+
+void Grammar::TransformToAugmentedGrammar() {
+    std::string new_axiom = axiom_ + "'";
+    g_[new_axiom] = {{axiom_}};
+    st_.PutSymbol(new_axiom, false);
+
+    axiom_ = new_axiom;
+}
+
 
 void Grammar::SetAxiom(const std::string& axiom) {
     axiom_ = axiom;

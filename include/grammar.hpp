@@ -24,6 +24,12 @@ struct Grammar {
             grammar);
 
     /**
+     * @brief Transforms the current grammar by generating a new rule of the type S' -> S. This is
+     * mandatory to SLR(1) analysis.
+     */
+    void TransformToAugmentedGrammar();
+
+    /**
      * @brief Sets the axiom (entry point) of the grammar.
      *
      * @param axiom The entry point or start symbol of the grammar.

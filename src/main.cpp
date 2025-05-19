@@ -41,6 +41,7 @@ int main(int argc, char** argv) {
         ll1.PrintTable();
     } else if (analysis_type == "slr") {
         gr = factory.GenSLR1Grammar(level);
+        gr.TransformToAugmentedGrammar();
         SLR1Parser slr1(gr);
         gr.Debug();
         std::cout << "Is slr1? : " << slr1.MakeParser() << "\n";

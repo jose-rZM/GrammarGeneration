@@ -239,7 +239,7 @@ bool SLR1Parser::MakeParser() {
 
         std::ranges::for_each(qi.items_, [&](const Lr0Item& item) {
             std::string next = item.NextToDot();
-            if (next != gr_.st_.EPSILON_ && next != gr_.st_.EOL_) {
+            if (next != gr_.st_.EPSILON_) {
                 nextSymbols.insert(next);
             }
         });
